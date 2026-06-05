@@ -1,0 +1,92 @@
+/* resources/css/app.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .nav-link {
+        @apply flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400
+        hover:bg-gray-800 hover:text-white transition-colors duration-150
+        text-sm font-medium cursor-pointer;
+    }
+    .nav-link.active {
+        @apply bg-blue-600 text-white;
+    }
+}
+
+/* ── Responsive layout ─────────────────────────────────────── */
+
+/* Sidebar: fixed on mobile, static on desktop */
+@media (min-width: 1024px) {
+    #sidebar {
+        transform: translateX(0) !important;
+        position: sticky !important;
+        top: 0 !important;
+        height: 100vh !important;
+    }
+
+    .lg\:hidden { display: none !important; }
+    .lg\:block  { display: block !important; }
+}
+
+@media (max-width: 1023px) {
+    .hidden.md\:block { display: none !important; }
+    .lg\:translate-x-0 { transform: translateX(0); }
+}
+
+/* Scrollable tables on mobile */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Stack grids to single column */
+    [style*="grid-template-columns: 1fr 1fr"],
+    [style*="grid-template-columns:1fr 1fr"],
+    [style*="grid-template-columns: 1fr 2fr"],
+    [style*="grid-template-columns:1fr 2fr"],
+    [style*="grid-template-columns: 2fr 1fr"],
+    [style*="grid-template-columns:2fr 1fr"],
+    [style*="grid-template-columns: 1fr 1.6fr"],
+    [style*="grid-template-columns:1fr 1.6fr"],
+    [style*="grid-template-columns: 1fr 1fr 1fr"],
+    [style*="grid-template-columns:1fr 1fr 1fr"],
+    [style*="grid-template-columns: repeat(2,1fr)"],
+    [style*="grid-template-columns:repeat(2,1fr)"],
+    [style*="grid-template-columns: repeat(3,1fr)"],
+    [style*="grid-template-columns:repeat(3,1fr)"],
+    [style*="grid-template-columns: repeat(4,1fr)"],
+    [style*="grid-template-columns:repeat(4,1fr)"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* POS: stack panels */
+    [style*="grid-template-columns: 1fr 380px"],
+    [style*="grid-template-columns:1fr 380px"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Pricing 3-col → single col */
+    [style*="grid-template-columns: 1fr 1fr 1fr"],
+    [style*="grid-template-columns:1fr 1fr 1fr"] {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+/* Scrollable tables */
+.bg-white.rounded-xl.border.border-gray-200.overflow-hidden {
+    overflow-x: auto;
+}
+
+/* Make sure main content doesn't overflow on mobile */
+@media (max-width: 768px) {
+    main {
+        padding: 16px 12px !important;
+    }
+}
+
+#app-sidebar {
+    background: #111827 !important;
+    color: #fff;
+}
