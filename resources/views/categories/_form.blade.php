@@ -34,12 +34,14 @@
                                        bg-white text-sm text-gray-800 focus:outline-none
                                        focus:ring-2 focus:ring-blue-500 appearance-none">
                             <option value="">— Top level category —</option>
-                            @foreach($parents as $parent)
-                                <option value="{{ $parent->id }}"
-                                    {{ old('parent_id', $category?->parent_id) == $parent->id ? 'selected' : '' }}>
-                                    {{ $parent->name }}
+                            @forelse($parentCategories as $parent)
+                                <option value="{{ $parent?->id }}"
+                                    {{ old('parent_id', $category?->parent_id) == $parent?->id ? 'selected' : '' }}>
+                                    {{ $parent?->name }}
                                 </option>
-                            @endforeach
+                            @empty
+                                <option value="">— Top level category —</option>
+                            @endforelse
                         </select>
                         <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

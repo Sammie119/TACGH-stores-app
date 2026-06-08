@@ -9,18 +9,19 @@ use App\Models\ProductCategory;
 use App\Models\StockMovement;
 use App\Models\StockTake;
 use App\Models\StockTakeItem;
+use App\Traits\HasBranchAccess;
 use App\Traits\HasSoftDeleteActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class StockTakeController extends Controller
 {
-    use HasSoftDeleteActions;
+    use HasSoftDeleteActions, HasBranchAccess;
 
     public function index(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         if ($request->get('trashed')) {
             $query = StockTake::onlyTrashed()->with(['branch', 'createdBy']);
@@ -55,7 +56,7 @@ class StockTakeController extends Controller
     public function create()
     {
         $user       = auth()->user();
-        $branches   = $user->hasRole('super_admin')
+        $branches   = $this->canViewAllBranches()
             ? Branch::where('is_active', true)->get()
             : Branch::where('id', $user->branch_id)->get();
         $categories = ProductCategory::where('is_active', true)->get();

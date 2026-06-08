@@ -11,6 +11,7 @@ use App\Models\SaleItem;
 use App\Models\StockMovement;
 use App\Models\StockTransfer;
 use App\Models\BankDeposit;
+use App\Traits\HasBranchAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Exports\SalesExport;
@@ -20,6 +21,8 @@ use App\Models\PurchaseOrderItem;
 
 class ReportController extends Controller
 {
+    use HasBranchAccess;
+
     public function index()
     {
         return view('reports.index');
@@ -28,7 +31,7 @@ class ReportController extends Controller
     public function sales(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
         $canViewAll   = $user->can('view all branch sales');
 
         $query = Sale::with(['branch', 'user', 'customer'])
@@ -107,7 +110,7 @@ class ReportController extends Controller
     public function inventory(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $query = BranchStock::with(['product.category', 'branch'])
             ->join('products', 'branch_stock.product_id', '=', 'products.id')
@@ -168,7 +171,7 @@ class ReportController extends Controller
     public function transfers(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $query = StockTransfer::with(['fromBranch', 'toBranch', 'requestedBy', 'items'])
             ->when(!$isSuperAdmin, fn($q) =>
@@ -203,7 +206,7 @@ class ReportController extends Controller
     public function deposits(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $query = BankDeposit::with(['branch', 'depositedBy', 'verifiedBy'])
             ->when(!$isSuperAdmin, fn($q) =>
@@ -270,7 +273,7 @@ class ReportController extends Controller
     public function product(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $products = Product::where('is_active', true)
             ->orderBy('name')
@@ -402,7 +405,7 @@ class ReportController extends Controller
     public function profitLoss(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $branchId  = $isSuperAdmin ? $request->branch_id : $user->branch_id;
         $dateFrom  = $request->date_from ?? now()->startOfMonth()->format('Y-m-d');
@@ -533,7 +536,7 @@ class ReportController extends Controller
     public function stockBalance(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
         $branchId     = $isSuperAdmin ? $request->branch_id : $user->branch_id;
 
         $query = BranchStock::with(['product.category', 'branch'])

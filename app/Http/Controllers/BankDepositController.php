@@ -4,18 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\BankDeposit;
 use App\Models\Branch;
+use App\Traits\HasBranchAccess;
 use App\Traits\HasSoftDeleteActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class BankDepositController extends Controller
 {
-    use HasSoftDeleteActions;
+    use HasSoftDeleteActions, HasBranchAccess;
 
     public function index(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         if ($request->get('trashed')) {
             $query = BankDeposit::onlyTrashed()
@@ -70,7 +71,7 @@ class BankDepositController extends Controller
     public function create()
     {
         $user     = auth()->user();
-        $branches = $user->hasRole('super_admin')
+        $branches = $this->canViewAllBranches()
             ? Branch::where('is_active', true)->get()
             : Branch::where('id', $user->branch_id)->get();
 
@@ -127,7 +128,7 @@ class BankDepositController extends Controller
         }
 
         $user     = auth()->user();
-        $branches = $user->hasRole('super_admin')
+        $branches = $this->canViewAllBranches()
             ? Branch::where('is_active', true)->get()
             : Branch::where('id', $user->branch_id)->get();
 

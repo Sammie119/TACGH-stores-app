@@ -306,27 +306,29 @@
             {{-- Demo credentials hint --}}
             @if(app()->environment('local'))
                 <div style="margin-top:24px;padding:14px 16px;background:#f8fafc;
-                        border:1px solid #e2e8f0;border-radius:10px">
+            border:1px solid #e2e8f0;border-radius:10px">
                     <p style="font-size:11px;font-weight:600;color:#64748b;
-                          text-transform:uppercase;letter-spacing:.06em;
-                          margin-bottom:8px">
+              text-transform:uppercase;letter-spacing:.06em;
+              margin-bottom:8px">
                         Demo credentials
                     </p>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;
-                            gap:8px">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                         @foreach([
-                            ['Super Admin', 'admin@admin.com', 'Admin@1234'],
+                            ['Super Admin',      'admin@admin.com',   'Admin@1234'],
+                            ['General Manager', 'manager@sms.com', 'Manager@1234'],
                         ] as [$role, $email, $pass])
                             <div style="padding:8px 10px;background:#fff;border-radius:7px;
-                                border:1px solid #e2e8f0;cursor:pointer"
+                    border:1px solid #e2e8f0;cursor:pointer"
                                  onclick="fillCredentials('{{ $email }}','{{ $pass }}')"
-                                 onmouseover="this.style.borderColor='#2563eb';this.style.background='#eff6ff'"
-                                 onmouseout="this.style.borderColor='#e2e8f0';this.style.background='#fff'">
+                                 onmouseover="this.style.borderColor='#2563eb';
+                          this.style.background='#eff6ff'"
+                                 onmouseout="this.style.borderColor='#e2e8f0';
+                         this.style.background='#fff'">
                                 <p style="font-size:11px;font-weight:600;color:#374151">
                                     {{ $role }}
                                 </p>
                                 <p style="font-size:10px;color:#94a3b8;margin-top:1px;
-                                  font-family:monospace">
+                      font-family:monospace">
                                     {{ $email }}
                                 </p>
                             </div>

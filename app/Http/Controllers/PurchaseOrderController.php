@@ -9,18 +9,19 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Traits\HasBranchAccess;
 use App\Traits\HasSoftDeleteActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderController extends Controller
 {
-    use HasSoftDeleteActions;
+    use HasSoftDeleteActions, HasBranchAccess;
 
     public function index(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         if ($request->get('trashed')) {
             $query = PurchaseOrder::onlyTrashed()
@@ -73,7 +74,7 @@ class PurchaseOrderController extends Controller
         $user      = auth()->user();
         $suppliers = Supplier::where('is_active', true)->get();
         $products  = Product::where('is_active', true)->get();
-        $branches  = $user->hasRole('super_admin')
+        $branches  = $this->canViewAllBranches()
             ? Branch::where('is_active', true)->get()
             : Branch::where('id', $user->branch_id)->get();
 
@@ -158,7 +159,7 @@ class PurchaseOrderController extends Controller
         $user      = auth()->user();
         $suppliers = Supplier::where('is_active', true)->get();
         $products  = Product::where('is_active', true)->get();
-        $branches  = $user->hasRole('super_admin')
+        $branches  = $this->canViewAllBranches()
             ? Branch::where('is_active', true)->get()
             : Branch::where('id', $user->branch_id)->get();
 

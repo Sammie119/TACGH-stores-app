@@ -281,7 +281,7 @@
                 const q = query.toLowerCase();
                 const matches = allProducts.filter(p =>
                     p.name.toLowerCase().includes(q) ||
-                    p.sku.toLowerCase().includes(q)
+                    p.sku?.toLowerCase().includes(q)
                 ).slice(0, 8);
 
                 if (matches.length === 0) {

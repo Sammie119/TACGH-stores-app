@@ -68,6 +68,11 @@ class UserController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        if (!auth()->user()->hasRole('super_admin') &&
+            !auth()->user()->hasRole('branch_admin')) {
+            abort(403, 'You do not have permission to create users.');
+        }
+
         $user = User::create([
             'name'      => $validated['name'],
             'email'     => $validated['email'],
@@ -120,6 +125,11 @@ class UserController extends Controller
             'roles'     => 'required|array|min:1',
             'roles.*'   => 'exists:roles,name',
         ]);
+
+        if (!auth()->user()->hasRole('super_admin') &&
+            !auth()->user()->hasRole('branch_admin')) {
+            abort(403, 'You do not have permission to create users.');
+        }
 
         $user->update([
             'name'      => $validated['name'],

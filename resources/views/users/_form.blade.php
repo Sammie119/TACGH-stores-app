@@ -189,33 +189,36 @@
                 @enderror
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
                     @foreach($roles as $role)
-                        <label style="display:flex;align-items:flex-start;gap:10px;padding:12px;
-                                  border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;
-                                  transition:border-color .15s"
-                               onmouseover="this.style.borderColor='#93c5fd'"
-                               onmouseout="this.style.borderColor='#e5e7eb'">
-                            <input type="checkbox" name="roles[]" value="{{ $role->name }}"
-                                   {{ in_array($role->name, old('roles', $user?->roles->pluck('name')->toArray() ?? [])) ? 'checked' : '' }}
-                                   class="mt-0.5 rounded border-gray-300 text-blue-600
-                                      focus:ring-blue-500">
-                            <div>
-                                <p class="text-sm font-medium text-gray-700">
-                                    {{ ucfirst(str_replace('_', ' ', $role->name)) }}
-                                </p>
-                                <p class="text-xs text-gray-400 mt-0.5">
-                                    @switch($role->name)
-                                        @case('super_admin') Full system access @break
-                                        @case('branch_admin') Branch oversight @break
-                                        @case('store_manager') Store operations @break
-                                        @case('sales_officer') POS & sales @break
-                                        @case('stock_officer') Stock management @break
-                                        @case('auditor') View & audit only @break
-                                        @case('accountant') Finance & reports @break
-                                        @default {{ $role->name }}
-                                    @endswitch
-                                </p>
-                            </div>
-                        </label>
+                        @if($role->name !== "super_admin")
+                            <label style="display:flex;align-items:flex-start;gap:10px;padding:12px;
+                                      border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;
+                                      transition:border-color .15s"
+                                   onmouseover="this.style.borderColor='#93c5fd'"
+                                   onmouseout="this.style.borderColor='#e5e7eb'">
+                                <input type="checkbox" name="roles[]" value="{{ $role->name }}"
+                                       {{ in_array($role->name, old('roles', $user?->roles->pluck('name')->toArray() ?? [])) ? 'checked' : '' }}
+                                       class="mt-0.5 rounded border-gray-300 text-blue-600
+                                          focus:ring-blue-500">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">
+                                        {{ ucfirst(str_replace('_', ' ', $role->name)) }}
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-0.5">
+                                        @switch($role->name)
+                                            @case('super_admin') Full system access @break
+                                            @case('branch_admin') Branch oversight @break
+                                            @case('store_manager') Store operations @break
+                                            @case('sales_officer') POS & sales @break
+                                            @case('stock_officer') Stock management @break
+                                            @case('auditor') View & audit only @break
+                                            @case('accountant') Finance & reports @break
+                                            @case('general_manager') Full system access without settings @break
+                                            @default {{ $role->name }}
+                                        @endswitch
+                                    </p>
+                                </div>
+                            </label>
+                        @endif
                     @endforeach
                 </div>
             </div>

@@ -6,14 +6,17 @@ use App\Models\BranchStock;
 use App\Models\StockTransfer;
 use App\Models\ProductReturn;
 use App\Models\BankDeposit;
+use App\Traits\HasBranchAccess;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    use HasBranchAccess;
+
     public function index()
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
         $branchId     = $user->branch_id;
 
         // Low stock items

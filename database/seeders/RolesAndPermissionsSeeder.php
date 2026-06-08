@@ -23,6 +23,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Product management
             'view products', 'create products', 'edit products', 'delete products',
 
+            // Categories
+            'view categories', 'create categories', 'edit categories', 'delete categories',
+
             // Inventory
             'view stock', 'adjust stock', 'view stock movements',
 
@@ -51,11 +54,17 @@ class RolesAndPermissionsSeeder extends Seeder
             // Dashboard
             'view dashboard',
 
+            // Customers
+            'view customers', 'create customers', 'edit customers',
+
             // Supplier
             'view suppliers', 'create suppliers', 'edit suppliers', 'delete suppliers',
             'view purchase orders', 'create purchase orders', 'edit purchase orders',
             'approve purchase orders', 'receive purchase orders',
             'view supplier payments', 'create supplier payments',
+
+            // Stock takes
+            'view stock takes', 'create stock takes', 'approve stock takes',
         ];
 
         foreach ($permissions as $permission) {
@@ -81,6 +90,59 @@ class RolesAndPermissionsSeeder extends Seeder
             'view deposits', 'create deposits',
             'view reports', 'export reports',
             'view dashboard',
+        ]);
+
+        // --- GENERAL MANAGER ---
+        Role::firstOrCreate(['name' => 'general_manager']);
+
+        // After creating roles, assign permissions to general_manager
+        $regionalManager = Role::findByName('general_manager');
+
+        $regionalManager->syncPermissions([
+            // Branches — view only
+            'view branches',
+
+            // Users — view only
+            'view users',
+
+            // Products & categories
+            'view products', 'create products', 'edit products', 'delete products',
+            'view categories', 'create categories', 'edit categories', 'delete categories',
+
+            // Inventory
+            'view stock', 'adjust stock',
+
+            // Sales
+            'view sales', 'create sales', 'cancel sales', 'view all branch sales',
+
+            // Transfers
+            'view transfers', 'create transfers', 'approve transfers', 'receive transfers',
+
+            // Returns
+            'view returns', 'approve returns', 'create returns',
+
+            // Deposits
+            'view deposits', 'create deposits', 'verify deposits',
+
+            // Financial years
+            'view financial years',
+
+            // Customers
+            'view customers', 'create customers', 'edit customers',
+
+            // Suppliers
+            'view suppliers', 'create suppliers', 'edit suppliers', 'view purchase orders', 'create purchase orders',
+            'edit purchase orders', 'approve purchase orders', 'receive purchase orders', 'view supplier payments',
+            'create supplier payments',
+
+            // Reports — full access
+            'view reports', 'export reports',
+
+            // Audit
+            'view audit logs',
+
+            // Stock takes
+            'view stock takes', 'create stock takes', 'approve stock takes',
         ]);
 
         // --- STORE MANAGER ---

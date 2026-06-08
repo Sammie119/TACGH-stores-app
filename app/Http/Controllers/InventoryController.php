@@ -7,14 +7,17 @@ use App\Models\BranchStock;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\FinancialYear;
+use App\Traits\HasBranchAccess;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
+    use HasBranchAccess;
+
     public function index(Request $request)
     {
         $user     = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $query = BranchStock::with(['product.category', 'branch'])
             ->join('products', 'branch_stock.product_id', '=', 'products.id')
@@ -68,13 +71,13 @@ class InventoryController extends Controller
     public function adjust(Product $product)
     {
         $user     = auth()->user();
-        $branches = $user->hasRole('super_admin')
+        $branches = $this->canViewAllBranches()
             ? Branch::where('is_active', true)->get()
             : Branch::where('id', $user->branch_id)->get();
 
         $currentStock = BranchStock::with('branch')
             ->where('product_id', $product->id)
-            ->when(!$user->hasRole('super_admin'), fn($q) =>
+            ->when(!$this->canViewAllBranches(), fn($q) =>
             $q->where('branch_id', $user->branch_id)
             )
             ->get();
@@ -169,7 +172,7 @@ class InventoryController extends Controller
     public function movements(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $query = StockMovement::with(['product', 'branch', 'user'])
             ->when(!$isSuperAdmin, fn($q) =>

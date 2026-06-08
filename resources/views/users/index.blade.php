@@ -111,123 +111,125 @@
             </thead>
             <tbody>
             @forelse($users as $user)
-                <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors
-                       {{ $user->trashed() ? 'opacity-60 bg-red-50' : '' }}">
+                @if($user->id !== 1)
+                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors
+                           {{ $user->trashed() ? 'opacity-60 bg-red-50' : '' }}">
 
-                    {{-- User info --}}
-                    <td class="px-5 py-3">
-                        <div style="display:flex;align-items:center;gap:10px">
-                            <div style="width:34px;height:34px;border-radius:50%;background:#dbeafe;
-                                    color:#1d4ed8;display:flex;align-items:center;justify-content:center;
-                                    font-size:13px;font-weight:600;flex-shrink:0">
-                                {{ strtoupper(substr($user->name, 0, 2)) }}
+                        {{-- User info --}}
+                        <td class="px-5 py-3">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:34px;height:34px;border-radius:50%;background:#dbeafe;
+                                        color:#1d4ed8;display:flex;align-items:center;justify-content:center;
+                                        font-size:13px;font-weight:600;flex-shrink:0">
+                                    {{ strtoupper(substr($user->name, 0, 2)) }}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">{{ $user->name }}</p>
+                                    <p class="text-xs text-gray-400">{{ $user->email }}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="font-medium text-gray-800">{{ $user->name }}</p>
-                                <p class="text-xs text-gray-400">{{ $user->email }}</p>
+                        </td>
+
+                        {{-- Roles --}}
+                        <td class="px-5 py-3">
+                            <div style="display:flex;flex-wrap:wrap;gap:4px">
+                                @foreach($user->roles as $role)
+                                    <span style="display:inline-flex;align-items:center;padding:2px 8px;
+                                         border-radius:20px;font-size:11px;font-weight:500;
+                                         background:#ede9fe;color:#5b21b6">
+                                {{ ucfirst(str_replace('_', ' ', $role->name)) }}
+                            </span>
+                                @endforeach
                             </div>
-                        </div>
-                    </td>
+                        </td>
 
-                    {{-- Roles --}}
-                    <td class="px-5 py-3">
-                        <div style="display:flex;flex-wrap:wrap;gap:4px">
-                            @foreach($user->roles as $role)
-                                <span style="display:inline-flex;align-items:center;padding:2px 8px;
-                                     border-radius:20px;font-size:11px;font-weight:500;
-                                     background:#ede9fe;color:#5b21b6">
-                            {{ ucfirst(str_replace('_', ' ', $role->name)) }}
-                        </span>
-                            @endforeach
-                        </div>
-                    </td>
+                        {{-- Branch --}}
+                        <td class="px-5 py-3 text-gray-600">
+                            {{ $user->branch?->name ?? '—' }}
+                        </td>
 
-                    {{-- Branch --}}
-                    <td class="px-5 py-3 text-gray-600">
-                        {{ $user->branch?->name ?? '—' }}
-                    </td>
-
-                    {{-- Status --}}
-                    <td class="px-5 py-3">
-                        @if($user->trashed())
-                            <span style="display:inline-flex;align-items:center;padding:2px 8px;
-                                     border-radius:20px;font-size:11px;font-weight:500;
-                                     background:#fee2e2;color:#991b1b">
-                            Deleted
-                        </span>
-                        @elseif($user->is_active)
-                            <span style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;
-                                     border-radius:20px;font-size:11px;font-weight:500;
-                                     background:#dcfce7;color:#166534">
-                            <span style="width:5px;height:5px;border-radius:50%;background:#16a34a"></span>
-                            Active
-                        </span>
-                        @else
-                            <span style="display:inline-flex;align-items:center;padding:2px 8px;
-                                     border-radius:20px;font-size:11px;font-weight:500;
-                                     background:#f3f4f6;color:#374151">
-                            Inactive
-                        </span>
-                        @endif
-                    </td>
-
-                    {{-- Actions --}}
-                    <td class="px-5 py-3">
-                        <div style="display:flex;align-items:center;gap:12px">
+                        {{-- Status --}}
+                        <td class="px-5 py-3">
                             @if($user->trashed())
-                                @can('create users')
-                                    <form method="POST" action="{{ route('users.restore', $user->id) }}">
-                                        @csrf @method('PATCH')
-                                        <button class="text-xs text-green-600 hover:underline font-medium">
-                                            Restore
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('users.force-delete', $user->id) }}"
-                                          onsubmit="return confirm('Permanently delete this user?')">
-                                        @csrf @method('DELETE')
-                                        <button class="text-xs text-red-600 hover:underline font-medium">
-                                            Delete permanently
-                                        </button>
-                                    </form>
-                                @endcan
+                                <span style="display:inline-flex;align-items:center;padding:2px 8px;
+                                         border-radius:20px;font-size:11px;font-weight:500;
+                                         background:#fee2e2;color:#991b1b">
+                                Deleted
+                            </span>
+                            @elseif($user->is_active)
+                                <span style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;
+                                         border-radius:20px;font-size:11px;font-weight:500;
+                                         background:#dcfce7;color:#166534">
+                                <span style="width:5px;height:5px;border-radius:50%;background:#16a34a"></span>
+                                Active
+                            </span>
                             @else
-                                <a href="{{ route('users.show', $user) }}"
-                                   class="text-xs text-blue-600 hover:underline font-medium">
-                                    View
-                                </a>
-                                @can('edit users')
-                                    <a href="{{ route('users.edit', $user) }}"
-                                       class="text-xs text-gray-600 hover:underline font-medium">
-                                        Edit
-                                    </a>
-                                    @if($user->id !== auth()->id())
-                                        <form method="POST"
-                                              action="{{ route('users.toggle-status', $user) }}">
-                                            @csrf @method('PATCH')
-                                            <button class="text-xs font-medium
-                                    {{ $user->is_active ? 'text-amber-600' : 'text-green-600' }}
-                                    hover:underline">
-                                                {{ $user->is_active ? 'Deactivate' : 'Activate' }}
-                                            </button>
-                                        </form>
-                                    @endif
-                                @endcan
-                                @can('delete users')
-                                    @if($user->id !== auth()->id())
-                                        <form method="POST" action="{{ route('users.destroy', $user) }}"
-                                              onsubmit="return confirm('Delete {{ addslashes($user->name) }}?')">
-                                            @csrf @method('DELETE')
-                                            <button class="text-xs text-red-500 hover:underline font-medium">
-                                                Delete
-                                            </button>
-                                        </form>
-                                    @endif
-                                @endcan
+                                <span style="display:inline-flex;align-items:center;padding:2px 8px;
+                                         border-radius:20px;font-size:11px;font-weight:500;
+                                         background:#f3f4f6;color:#374151">
+                                Inactive
+                            </span>
                             @endif
-                        </div>
-                    </td>
+                        </td>
 
-                </tr>
+                        {{-- Actions --}}
+                        <td class="px-5 py-3">
+                            <div style="display:flex;align-items:center;gap:12px">
+                                @if($user->trashed())
+                                    @can('create users')
+                                        <form method="POST" action="{{ route('users.restore', $user->id) }}">
+                                            @csrf @method('PATCH')
+                                            <button class="text-xs text-green-600 hover:underline font-medium">
+                                                Restore
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('users.force-delete', $user->id) }}"
+                                              onsubmit="return confirm('Permanently delete this user?')">
+                                            @csrf @method('DELETE')
+                                            <button class="text-xs text-red-600 hover:underline font-medium">
+                                                Delete permanently
+                                            </button>
+                                        </form>
+                                    @endcan
+                                @else
+                                    <a href="{{ route('users.show', $user) }}"
+                                       class="text-xs text-blue-600 hover:underline font-medium">
+                                        View
+                                    </a>
+                                    @can('edit users')
+                                        <a href="{{ route('users.edit', $user) }}"
+                                           class="text-xs text-gray-600 hover:underline font-medium">
+                                            Edit
+                                        </a>
+                                        @if($user->id !== auth()->id())
+                                            <form method="POST"
+                                                  action="{{ route('users.toggle-status', $user) }}">
+                                                @csrf @method('PATCH')
+                                                <button class="text-xs font-medium
+                                        {{ $user->is_active ? 'text-amber-600' : 'text-green-600' }}
+                                        hover:underline">
+                                                    {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endcan
+                                    @can('delete users')
+                                        @if($user->id !== auth()->id())
+                                            <form method="POST" action="{{ route('users.destroy', $user) }}"
+                                                  onsubmit="return confirm('Delete {{ addslashes($user->name) }}?')">
+                                                @csrf @method('DELETE')
+                                                <button class="text-xs text-red-500 hover:underline font-medium">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endcan
+                                @endif
+                            </div>
+                        </td>
+
+                    </tr>
+                @endif
             @empty
                 <tr>
                     <td colspan="5" class="px-5 py-12 text-center text-gray-400">

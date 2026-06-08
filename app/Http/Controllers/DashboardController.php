@@ -9,15 +9,18 @@ use App\Models\FinancialYear;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\StockTransfer;
+use App\Traits\HasBranchAccess;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    use HasBranchAccess;
+
     public function index()
     {
         $user         = auth()->user();
         $branchId     = $user->branch_id;
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         // ── Summary cards ─────────────────────────────────────
         $salesToday = Sale::query()

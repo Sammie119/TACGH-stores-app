@@ -45,6 +45,10 @@ class BranchController extends Controller
             'logo'       => 'nullable|image|max:2048',
         ]);
 
+        if (!auth()->user()->hasRole('super_admin')) {
+            abort(403, 'Only super admins can create branches.');
+        }
+
         $validated['is_active'] = $request->has('is_active');
 
         if ($request->hasFile('logo')) {
@@ -97,6 +101,10 @@ class BranchController extends Controller
             'is_active'  => 'boolean',
             'logo'       => 'nullable|image|max:2048',
         ]);
+
+        if (!auth()->user()->hasRole('super_admin')) {
+            abort(403, 'Only super admins can create branches.');
+        }
 
         $validated['is_active'] = $request->has('is_active');
 

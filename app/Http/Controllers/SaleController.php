@@ -5,14 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\Branch;
 use App\Models\FinancialYear;
+use App\Traits\HasBranchAccess;
 use Illuminate\Http\Request;
 
 class SaleController extends Controller
 {
+    use HasBranchAccess;
+
     public function index(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
         $canViewAll   = $user->can('view all branch sales');
 
         if ($request->get('trashed')) {

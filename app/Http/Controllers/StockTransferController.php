@@ -8,18 +8,19 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\StockTransfer;
 use App\Models\TransferItem;
+use App\Traits\HasBranchAccess;
 use App\Traits\HasSoftDeleteActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class StockTransferController extends Controller
 {
-    use HasSoftDeleteActions;
+    use HasSoftDeleteActions, HasBranchAccess;
 
     public function index(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         // Start with trashed or active
         if ($request->get('trashed')) {

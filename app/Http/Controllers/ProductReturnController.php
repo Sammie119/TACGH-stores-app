@@ -7,18 +7,19 @@ use App\Models\ProductReturn;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockMovement;
+use App\Traits\HasBranchAccess;
 use App\Traits\HasSoftDeleteActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ProductReturnController extends Controller
 {
-    use HasSoftDeleteActions;
+    use HasSoftDeleteActions, HasBranchAccess;
 
     public function index(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         if ($request->get('trashed')) {
             $query = ProductReturn::onlyTrashed()
@@ -80,7 +81,7 @@ class ProductReturnController extends Controller
         if ($invoiceNo) {
             $sale = Sale::with('items.product')
                 ->where('invoice_no', $invoiceNo)
-                ->when(!$user->hasRole('super_admin'), fn($q) =>
+                ->when(!$this->canViewAllBranches(), fn($q) =>
                 $q->where('branch_id', $user->branch_id)
                 )
                 ->where('status', '!=', 'cancelled')

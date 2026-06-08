@@ -11,6 +11,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Sale;
 use App\Models\StockTake;
 use App\Models\StockTransfer;
+use App\Traits\HasBranchAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ use App\Models\StockMovement;
 
 class PdfController extends Controller
 {
+    use HasBranchAccess;
     // Add this private helper method to PdfController
     private function getLogoBase64(?string $logoPath): ?string
     {
@@ -64,7 +66,7 @@ class PdfController extends Controller
     public function salesReport(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $query = Sale::with(['branch', 'user', 'customer'])
             ->when(!$isSuperAdmin, fn($q) =>
@@ -113,7 +115,7 @@ class PdfController extends Controller
     public function inventoryReport(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
 
         $stock = BranchStock::with(['product.category', 'branch'])
             ->join('products', 'branch_stock.product_id', '=', 'products.id')
@@ -235,7 +237,7 @@ class PdfController extends Controller
     public function productReport(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
         $branchId     = $isSuperAdmin ? $request->branch_id : $user->branch_id;
 
         $selectedProduct = Product::findOrFail($request->product_id);
@@ -326,7 +328,7 @@ class PdfController extends Controller
     public function profitLossReport(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
         $branchId     = $isSuperAdmin ? $request->branch_id : $user->branch_id;
         $dateFrom     = $request->date_from ?? now()->startOfMonth()->format('Y-m-d');
         $dateTo       = $request->date_to   ?? now()->format('Y-m-d');
@@ -455,7 +457,7 @@ class PdfController extends Controller
     public function stockBalance(Request $request)
     {
         $user         = auth()->user();
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $isSuperAdmin = $this->canViewAllBranches();
         $branchId     = $isSuperAdmin ? $request->branch_id : $user->branch_id;
 
         $stock = BranchStock::with(['product.category', 'branch'])
