@@ -24,6 +24,8 @@ class Product extends Model
         'is_active'     => 'boolean',
     ];
 
+    protected $appends = ['total_quantity'];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logAll()->useLogName('products');
@@ -36,5 +38,10 @@ class Product extends Model
     public function stockForBranch($branchId)
     {
         return $this->stock()->where('branch_id', $branchId)->first();
+    }
+
+    public function getTotalQuantityAttribute()
+    {
+        return BranchStock::where('product_id', $this->id)->sum('quantity');
     }
 }

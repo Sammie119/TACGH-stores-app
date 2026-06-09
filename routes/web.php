@@ -4,6 +4,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StockTakeController;
 use Illuminate\Support\Facades\Route;
@@ -169,6 +170,19 @@ Route::middleware(['auth'])->group(function () {
         Route::get('product-report',                 [PdfController::class, 'productReport'])->name('product-report');
         Route::get('profit-loss',                    [PdfController::class, 'profitLossReport'])->name('profit-loss');
         Route::get('stock-balance',                  [PdfController::class, 'stockBalance'])->name('stock-balance');
+    });
+
+    // In routes/web.php — inside auth middleware group
+    Route::prefix('settings/roles')->name('roles.')->group(function () {
+        Route::get('/',                      [RolePermissionController::class, 'index'])->name('index');
+        Route::get('/create',                [RolePermissionController::class, 'create'])->name('create');
+        Route::post('/',                     [RolePermissionController::class, 'store'])->name('store');
+        Route::get('/{role}/edit',           [RolePermissionController::class, 'edit'])->name('edit');
+        Route::put('/{role}',                [RolePermissionController::class, 'update'])->name('update');
+        Route::delete('/{role}',             [RolePermissionController::class, 'destroy'])->name('destroy');
+        Route::get('/permissions',           [RolePermissionController::class, 'permissions'])->name('permissions');
+        Route::get('/user-roles',            [RolePermissionController::class, 'userRoles'])->name('user-roles');
+        Route::put('/user-roles/{user}',     [RolePermissionController::class, 'updateUserRole'])->name('update-user-role');
     });
 
     // Product import

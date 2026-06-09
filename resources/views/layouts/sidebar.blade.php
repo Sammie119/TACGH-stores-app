@@ -245,7 +245,8 @@
                             || request()->routeIs('settings.*')
                             || request()->routeIs('branches.*')
                             || request()->routeIs('financial-years.*')
-                            || request()->routeIs('reports.*');
+                            || request()->routeIs('reports.*')
+                            || request()->routeIs('roles.*');
         @endphp
         <div x-data="{ open: {{ $systemOpen ? 'true' : 'false' }} }">
             <button @click="open = !open"
@@ -298,8 +299,13 @@
                 {{-- Settings --}}
                 @role('super_admin')
                     <a href="{{ route('settings.index') }}"
-                       class="snav-sub {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                       class="snav-sub {{ request()->routeIs('settings.index') ? 'active' : '' }}">
                         Settings
+                    </a>
+
+                    <a href="{{ route('roles.index') }}"
+                       class="snav-sub {{ request()->routeIs('roles.index') ? 'active' : '' }}">
+                        Roles & permissions
                     </a>
                 @endrole
 

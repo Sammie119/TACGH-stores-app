@@ -106,6 +106,9 @@
                     Category
                 </th>
                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Quantity
+                </th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     Cost
                 </th>
                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -157,6 +160,10 @@
 
                     <td class="px-5 py-3 text-gray-600">
                         {{ $product->category?->name ?? '—' }}
+                    </td>
+
+                    <td class="px-5 py-3 text-gray-700">
+                        {{ $product->total_quantity ?? 0 }}
                     </td>
 
                     <td class="px-5 py-3 text-gray-700">
