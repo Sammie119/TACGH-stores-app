@@ -107,7 +107,7 @@
                 {{-- Current logo --}}
                 <div style="display:flex;align-items:center;gap:14px;padding:14px;
                     background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">
-                    <img src="{{ Storage::url($branch->logo) }}"
+                    <img src="{{ branch_logo_url($branch->logo) }}"
                          alt="{{ $branch->name }} logo"
                          style="width:64px;height:64px;object-fit:contain;
                         border-radius:8px;border:1px solid #e5e7eb;

@@ -27,19 +27,28 @@ class PdfController extends Controller
     {
         if (!$logoPath) return null;
 
-        $fullPath = storage_path('app/public/' . $logoPath);
+        $paths = [
+            // New public uploads path
+            public_path($logoPath),
+            // Legacy storage path
+            storage_path('app/public/' . $logoPath),
+            public_path('storage/' . $logoPath),
+        ];
 
-        if (!file_exists($fullPath)) {
-            // Try public path as fallback
-            $fullPath = public_path('storage/' . $logoPath);
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                $mimeType = mime_content_type($path);
+                $data     = base64_encode(file_get_contents($path));
+                return "data:{$mimeType};base64,{$data}";
+            }
         }
 
-        if (!file_exists($fullPath)) return null;
+        \Log::warning('Branch logo not found', [
+            'logo'        => $logoPath,
+            'tried_paths' => $paths,
+        ]);
 
-        $mimeType = mime_content_type($fullPath);
-        $data     = base64_encode(file_get_contents($fullPath));
-
-        return "data:{$mimeType};base64,{$data}";
+        return null;
     }
 
     // ── Receipt ───────────────────────────────────────────────────

@@ -227,7 +227,7 @@
                 </label>
                 @if($product?->image)
                     <div style="margin-bottom:10px">
-                        <img src="{{ Storage::url($product->image) }}"
+                        <img src="{{ branch_logo_url($product->image) }}"
                              alt="{{ $product->name }}"
                              style="width:80px;height:80px;object-fit:cover;border-radius:8px;
                                 border:1px solid #e5e7eb">

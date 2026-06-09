@@ -133,7 +133,7 @@
                     <td class="px-5 py-3">
                         <div style="display:flex;align-items:center;gap:10px">
                             @if($product->image)
-                                <img src="{{ Storage::url($product->image) }}"
+                                <img src="{{ branch_logo_url($product->image) }}"
                                      alt="{{ $product->name }}"
                                      style="width:34px;height:34px;border-radius:8px;
                                     object-fit:cover;border:1px solid #e5e7eb">

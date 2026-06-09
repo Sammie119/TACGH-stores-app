@@ -19,7 +19,7 @@
                 {{-- Branch logo --}}
                 @if($sale->branch?->logo)
                     <div style="margin-bottom:12px">
-                        <img src="{{ Storage::url($sale->branch->logo) }}"
+                        <img src="{{ branch_logo_url($sale->branch->logo) }}"
                              alt="{{ $sale->branch->name }}"
                              style="height:60px;max-width:160px;object-fit:contain;
                     margin:0 auto;display:block">

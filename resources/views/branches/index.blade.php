@@ -43,7 +43,7 @@
                     <td class="px-5 py-3">
                         <div class="flex items-center gap-3">
                             @if($branch->logo)
-                                <img src="{{ Storage::url($branch->logo) }}"
+                                <img src="{{ branch_logo_url($branch->logo) }}"
                                      alt="{{ $branch->name }}"
                                      style="width:34px;height:34px;border-radius:8px;object-fit:contain;
                                      border:1px solid #e5e7eb;background:#fff;padding:2px;

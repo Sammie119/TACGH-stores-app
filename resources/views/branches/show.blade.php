@@ -14,7 +14,7 @@
             {{-- Branch logo --}}
             @if($branch->logo)
                 <div style="margin-bottom:16px;text-align:center">
-                    <img src="{{ Storage::url($branch->logo) }}"
+                    <img src="{{ branch_logo_url($branch->logo) }}"
                          alt="{{ $branch->name }}"
                          style="height:72px;max-width:200px;object-fit:contain;
                 margin:0 auto;display:block;border-radius:8px;

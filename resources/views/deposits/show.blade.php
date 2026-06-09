@@ -136,9 +136,9 @@
             </div>
             <div class="p-5">
                 @if($deposit->slip_image)
-                    <a href="{{ Storage::url($deposit->slip_image) }}"
+                    <a href="{{ branch_logo_url($deposit->slip_image) }}"
                        target="_blank">
-                        <img src="{{ Storage::url($deposit->slip_image) }}"
+                        <img src="{{ branch_logo_url($deposit->slip_image) }}"
                              alt="Pay-in slip"
                              style="width:100%;border-radius:8px;border:1px solid #e5e7eb;
                             object-fit:contain;max-height:500px">

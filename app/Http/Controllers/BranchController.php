@@ -11,6 +11,34 @@ class BranchController extends Controller
 {
     use HasSoftDeleteActions;
 
+    private function handleLogoUpload($request, $branch = null): ?string
+    {
+        if (!$request->hasFile('logo')) {
+            return $branch?->logo;
+        }
+
+        // Delete old logo
+        if ($branch?->logo) {
+            $oldPath = public_path($branch->logo);
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+        }
+
+        $file      = $request->file('logo');
+        $filename  = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+        $directory = public_path('uploads/branches/logos');
+
+        // Create directory if it doesn't exist
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $file->move($directory, $filename);
+
+        return 'uploads/branches/logos/' . $filename;
+    }
+
     public function index(Request $request)
     {
         $query = Branch::with('manager');
@@ -52,8 +80,7 @@ class BranchController extends Controller
         $validated['is_active'] = $request->has('is_active');
 
         if ($request->hasFile('logo')) {
-            $validated['logo'] = $request->file('logo')
-                ->store('branches/logos', 'public');
+            $validated['logo'] = $this->handleLogoUpload($request);
         }
 
         $branch = Branch::create($validated);
@@ -109,13 +136,7 @@ class BranchController extends Controller
         $validated['is_active'] = $request->has('is_active');
 
         if ($request->hasFile('logo')) {
-            // Delete old logo
-            if ($branch->logo) {
-                \Illuminate\Support\Facades\Storage::disk('public')
-                    ->delete($branch->logo);
-            }
-            $validated['logo'] = $request->file('logo')
-                ->store('branches/logos', 'public');
+            $validated['logo'] = $this->handleLogoUpload($request);
         }
 
         $branch->update($validated);

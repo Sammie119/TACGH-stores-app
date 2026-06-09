@@ -127,9 +127,9 @@
 
                 @if($deposit?->slip_image)
                     <div style="margin-bottom:10px">
-                        <a href="{{ Storage::url($deposit->slip_image) }}"
+                        <a href="{{ branch_logo_url($deposit->slip_image) }}"
                            target="_blank">
-                            <img src="{{ Storage::url($deposit->slip_image) }}"
+                            <img src="{{ branch_logo_url($deposit->slip_image) }}"
                                  alt="Current slip"
                                  style="max-height:120px;border-radius:8px;
                                     border:1px solid #e5e7eb;object-fit:cover">

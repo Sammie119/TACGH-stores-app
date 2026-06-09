@@ -12,7 +12,7 @@
 
             <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
                 @if($product->image)
-                    <img src="{{ Storage::url($product->image) }}"
+                    <img src="{{ branch_logo_url($product->image) }}"
                          alt="{{ $product->name }}"
                          style="width:100%;height:180px;object-fit:cover">
                 @else
