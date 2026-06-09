@@ -30,7 +30,7 @@
                     </div>
                     <div style="display:flex;justify-content:space-between;gap:8px">
                         <dt class="text-gray-500">Customer</dt>
-                        <dd class="text-gray-700">{{ $sale->customer?->name ?? 'Walk-in' }}</dd>
+                        <dd class="text-gray-700">{{ $sale->customer?->name ?? $sale->walkin_name ?? 'Walk-in' }}</dd>
                     </div>
                     <div style="display:flex;justify-content:space-between;gap:8px">
                         <dt class="text-gray-500">Payment</dt>

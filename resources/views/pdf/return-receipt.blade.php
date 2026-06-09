@@ -202,6 +202,11 @@
         <span>Customer</span>
         <span>{{ $return->sale->customer->name }}</span>
     </div>
+@elseif($return->sale->walkin_name)
+    <div class="meta-row">
+        <span>Customer</span>
+        <span>{{ $return->sale->walkin_name }}</span>
+    </div>
 @endif
 <div class="meta-row">
     <span>Processed by</span>

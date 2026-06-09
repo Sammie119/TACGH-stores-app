@@ -14,7 +14,7 @@ class Sale extends Model
     protected $fillable = [
         'invoice_no', 'branch_id', 'user_id', 'customer_id',
         'financial_year_id', 'total_amount', 'discount',
-        'amount_paid', 'balance_due', 'payment_method', 'status', 'notes',
+        'amount_paid', 'balance_due', 'payment_method', 'status', 'notes', 'walkin_name'
     ];
 
     protected $casts = [

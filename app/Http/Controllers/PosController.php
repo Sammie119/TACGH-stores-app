@@ -122,7 +122,10 @@ class PosController extends Controller
                 'invoice_no'       => Sale::generateInvoiceNo(),
                 'branch_id'        => $user->branch_id,
                 'user_id'          => $user->id,
-                'customer_id'      => $request->customer_id,
+                'customer_id'    => $request->customer_id ?: null,
+                'walkin_name'    => !$request->customer_id
+                    ? $request->walkin_name
+                    : null, // ← add this
                 'financial_year_id'=> $financialYear->id,
                 'total_amount'     => $finalTotal,
                 'discount'         => $overallDiscount,

@@ -162,7 +162,7 @@
                     <td class="px-5 py-3 text-gray-600">{{ $sale->branch?->name ?? '—' }}</td>
 
                     <td class="px-5 py-3 text-gray-600">
-                        {{ $sale->customer?->name ?? 'Walk-in' }}
+                        {{ $sale->customer?->name ?? $sale->walkin_name ?? 'Walk-in' }}
                     </td>
 
                     <td class="px-5 py-3 text-gray-600">{{ $sale->user?->name ?? '—' }}</td>

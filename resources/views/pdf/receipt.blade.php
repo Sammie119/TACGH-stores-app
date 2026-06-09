@@ -197,12 +197,24 @@
     <span>Cashier</span>
     <span>{{ $sale->user?->name }}</span>
 </div>
+{{-- Customer --}}
 @if($sale->customer)
     <div class="meta-row">
         <span>Customer</span>
         <span>{{ $sale->customer->name }}</span>
     </div>
+@elseif($sale->walkin_name)
+    <div class="meta-row">
+        <span>Customer</span>
+        <span>{{ $sale->walkin_name }}</span>
+    </div>
+@else
+    <div class="meta-row">
+        <span>Customer</span>
+        <span>Walk-in</span>
+    </div>
 @endif
+
 <div class="meta-row">
     <span>Payment</span>
     <span>{{ strtoupper($sale->payment_method) }}</span>

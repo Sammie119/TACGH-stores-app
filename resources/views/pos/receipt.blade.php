@@ -65,10 +65,21 @@
                     <span style="font-size:12px;color:#6b7280">Cashier</span>
                     <span style="font-size:12px;color:#374151">{{ $sale->user?->name }}</span>
                 </div>
+                {{-- Customer --}}
                 @if($sale->customer)
-                    <div style="display:flex;justify-content:space-between">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
                         <span style="font-size:12px;color:#6b7280">Customer</span>
                         <span style="font-size:12px;color:#374151">{{ $sale->customer->name }}</span>
+                    </div>
+                @elseif($sale->walkin_name)
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                        <span style="font-size:12px;color:#6b7280">Customer</span>
+                        <span style="font-size:12px;color:#374151">{{ $sale->walkin_name }}</span>
+                    </div>
+                @else
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                        <span style="font-size:12px;color:#6b7280">Customer</span>
+                        <span style="font-size:12px;color:#374151">Walk-in</span>
                     </div>
                 @endif
             </div>

@@ -18,13 +18,15 @@
                     Search products
                 </p>
                 <div style="position:relative">
-                <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
-                             color:#9ca3af;pointer-events:none;display:flex">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </span>
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
+                                 color:#9ca3af;pointer-events:none;display:flex">
+                        <svg width="18" height="18" fill="none" stroke="currentColor"
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="1.5"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </span>
                     <input type="text"
                            id="product-search"
                            placeholder="Type product name, SKU or scan barcode…"
@@ -32,22 +34,22 @@
                            oninput="searchProducts(this.value)"
                            onkeydown="handleSearchKey(event)"
                            style="width:100%;height:44px;padding:0 14px 0 40px;
-                              border:1px solid #d1d5db;border-radius:10px;
-                              font-size:14px;color:#111827;outline:none;
-                              box-sizing:border-box">
+                                  border:1px solid #d1d5db;border-radius:10px;
+                                  font-size:14px;color:#111827;outline:none;
+                                  box-sizing:border-box">
 
                     {{-- Dropdown --}}
                     <div id="search-results"
                          style="display:none;position:absolute;top:calc(100% + 4px);
-                            left:0;right:0;background:#fff;border:1px solid #e5e7eb;
-                            border-radius:10px;z-index:50;max-height:320px;
-                            overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.08)">
+                                left:0;right:0;background:#fff;border:1px solid #e5e7eb;
+                                border-radius:10px;z-index:50;max-height:320px;
+                                overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.08)">
                     </div>
                 </div>
                 <p style="font-size:12px;color:#9ca3af;margin-top:8px">
                     Press
                     <kbd style="background:#f3f4f6;padding:1px 6px;border-radius:4px;
-                            font-size:11px;border:1px solid #d1d5db">Enter</kbd>
+                                font-size:11px;border:1px solid #d1d5db">Enter</kbd>
                     or click a result to add to cart
                 </p>
             </div>
@@ -55,15 +57,16 @@
             {{-- Cart / sale items --}}
             <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
                 <div style="padding:16px 20px;border-bottom:1px solid #f3f4f6;
-                        display:flex;align-items:center;justify-content:space-between">
+                            display:flex;align-items:center;justify-content:space-between">
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest">
                         Sale items
                     </p>
                     <div style="display:flex;align-items:center;gap:14px">
-                        <span id="cart-count" style="font-size:12px;color:#9ca3af">0 items</span>
+                        <span id="cart-count"
+                              style="font-size:12px;color:#9ca3af">0 items</span>
                         <button onclick="clearCart()"
                                 style="font-size:12px;color:#ef4444;background:none;
-                                   border:none;cursor:pointer;font-weight:500">
+                                       border:none;cursor:pointer;font-weight:500">
                             Clear all
                         </button>
                     </div>
@@ -73,7 +76,8 @@
                 <div id="cart-empty" style="padding:56px 20px;text-align:center">
                     <svg width="44" height="44" fill="none" stroke="#e5e7eb"
                          viewBox="0 0 24 24" style="margin:0 auto 12px">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="1"
                               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
                     <p style="font-size:13px;color:#d1d5db">
@@ -114,87 +118,121 @@
         {{-- ── RIGHT: Customer + Payment + Checkout ── --}}
         <div style="display:flex;flex-direction:column;gap:16px">
 
-            {{-- Customer --}}
+            {{-- Customer selection --}}
             <div class="bg-white border border-gray-200 rounded-xl p-5">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+                <p class="text-xs font-semibold text-gray-400 uppercase
+                           tracking-widest mb-3">
                     Customer
                 </p>
-                <div style="position:relative">
-                <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
-                             color:#9ca3af;pointer-events:none;display:flex">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                </span>
-                    <select id="customer-select"
-                            style="width:100%;height:38px;padding:0 32px 0 34px;
-                               border:1px solid #d1d5db;border-radius:8px;font-size:13px;
-                               color:#111827;background:#fff;outline:none;appearance:none;
-                               box-sizing:border-box">
-                        <option value="">— Walk-in customer —</option>
+                <div class="relative">
+                    <select id="customer_id"
+                            onchange="handleCustomerChange(this.value)"
+                            class="w-full h-9 px-3 pr-8 rounded-lg border
+                                   border-gray-300 bg-white text-sm text-gray-700
+                                   focus:outline-none focus:ring-2
+                                   focus:ring-blue-500 appearance-none">
+                        <option value="" selected>Walk-in Customer</option>
+                        <option value="">Cash Customer</option>
                         @foreach($customers as $customer)
                             <option value="{{ $customer->id }}">
                                 {{ $customer->name }}
-                                @if($customer->balance > 0)
-                                    (owes GHS {{ number_format($customer->balance, 2) }})
+                                @if($customer->phone)
+                                    — {{ $customer->phone }}
                                 @endif
                             </option>
                         @endforeach
                     </select>
-                    <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                             color:#9ca3af;pointer-events:none;display:flex">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </span>
+                    <span class="absolute inset-y-0 right-3 flex items-center
+                                 pointer-events-none text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </span>
+                </div>
+
+                {{-- Walk-in name badge --}}
+                <div id="walkin-badge"
+                     style="display:none;margin-top:8px;padding:6px 10px;
+                            background:#eff6ff;border:1px solid #bfdbfe;
+                            border-radius:7px;align-items:center;
+                            justify-content:space-between">
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <svg style="width:14px;height:14px;color:#2563eb;flex-shrink:0"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        <span id="walkin-name-display"
+                              style="font-size:12px;font-weight:500;color:#1d4ed8">
+                        </span>
+                    </div>
+                    <button type="button"
+                            onclick="clearWalkinName()"
+                            style="font-size:10px;color:#6b7280;background:none;
+                                   border:none;cursor:pointer;padding:0"
+                            onmouseover="this.style.color='#dc2626'"
+                            onmouseout="this.style.color='#6b7280'">
+                        Clear
+                    </button>
                 </div>
             </div>
 
             {{-- Payment method --}}
             <div class="bg-white border border-gray-200 rounded-xl p-5">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+                <p class="text-xs font-semibold text-gray-400 uppercase
+                           tracking-widest mb-3">
                     Payment method
                 </p>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:20px">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;
+                            gap:6px;margin-bottom:20px">
                     @foreach(['cash' => 'Cash', 'momo' => 'MoMo', 'bank' => 'Bank',
                               'credit' => 'Credit', 'split' => 'Split'] as $val => $label)
                         <div id="pm-{{ $val }}"
                              onclick="selectPayment('{{ $val }}')"
-                             style="padding:9px 4px;border:1px solid {{ $val === 'cash' ? '#2563eb' : '#e5e7eb' }};
-                            border-radius:8px;text-align:center;cursor:pointer;
-                            background:{{ $val === 'cash' ? '#eff6ff' : '#fff' }};
-                            transition:all .15s">
-                    <span id="pm-label-{{ $val }}"
-                          style="font-size:12px;font-weight:500;
-                                 color:{{ $val === 'cash' ? '#2563eb' : '#374151' }}">
-                        {{ $label }}
-                    </span>
+                             style="padding:9px 4px;border:1px solid
+                                {{ $val === 'cash' ? '#2563eb' : '#e5e7eb' }};
+                                border-radius:8px;text-align:center;cursor:pointer;
+                                background:{{ $val === 'cash' ? '#eff6ff' : '#fff' }};
+                                transition:all .15s">
+                        <span id="pm-label-{{ $val }}"
+                              style="font-size:12px;font-weight:500;
+                                     color:{{ $val === 'cash' ? '#2563eb' : '#374151' }}">
+                            {{ $label }}
+                        </span>
                         </div>
                     @endforeach
                 </div>
 
                 {{-- Totals box --}}
-                <div style="background:#f9fafb;border-radius:10px;padding:14px;margin-bottom:14px">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <div style="background:#f9fafb;border-radius:10px;
+                            padding:14px;margin-bottom:14px">
+                    <div style="display:flex;justify-content:space-between;
+                                margin-bottom:8px">
                         <span style="font-size:12px;color:#6b7280">Subtotal</span>
-                        <span style="font-size:12px;color:#374151" id="subtotal-display">
-                        GHS 0.00
-                    </span>
+                        <span style="font-size:12px;color:#374151"
+                              id="subtotal-display">GHS 0.00</span>
                     </div>
-                    <div style="display:flex;align-items:center;justify-content:space-between;
-                            margin-bottom:8px">
-                        <span style="font-size:12px;color:#6b7280">Discount (GHS)</span>
+                    <div style="display:flex;align-items:center;
+                                justify-content:space-between;margin-bottom:8px">
+                        <span style="font-size:12px;color:#6b7280">
+                            Discount (GHS)
+                        </span>
                         <input type="number" id="overall-discount"
                                value="0" min="0" step="0.01"
                                oninput="updateTotals()"
                                style="width:90px;height:28px;padding:0 8px;
-                                  border:1px solid #d1d5db;border-radius:6px;
-                                  font-size:12px;text-align:right;outline:none">
+                                      border:1px solid #d1d5db;border-radius:6px;
+                                      font-size:12px;text-align:right;outline:none">
                     </div>
                     <div style="display:flex;justify-content:space-between;
-                            border-top:1px solid #e5e7eb;padding-top:10px;margin-top:4px">
-                        <span style="font-size:15px;font-weight:600;color:#111827">Total</span>
+                                border-top:1px solid #e5e7eb;padding-top:10px;
+                                margin-top:4px">
+                        <span style="font-size:15px;font-weight:600;color:#111827">
+                            Total
+                        </span>
                         <span style="font-size:20px;font-weight:700;color:#2563eb"
                               id="total-display">GHS 0.00</span>
                     </div>
@@ -203,60 +241,140 @@
                 {{-- Amount paid --}}
                 <div style="margin-bottom:14px">
                     <div style="display:flex;justify-content:space-between;
-                            align-items:center;margin-bottom:6px">
+                                align-items:center;margin-bottom:6px">
                         <label style="font-size:12px;color:#6b7280;font-weight:500">
                             Amount paid (GHS)
                         </label>
                         <span id="change-display"
                               style="font-size:12px;font-weight:500;color:#9ca3af">
-                        Change: GHS 0.00
-                    </span>
+                            Change: GHS 0.00
+                        </span>
                     </div>
                     <input type="number" id="amount-paid"
                            value="0" min="0" step="0.01"
                            oninput="updateChange()"
                            style="width:100%;height:48px;padding:0 14px;
-                              border:1px solid #d1d5db;border-radius:8px;
-                              font-size:20px;font-weight:700;text-align:right;
-                              color:#111827;outline:none;box-sizing:border-box">
+                                  border:1px solid #d1d5db;border-radius:8px;
+                                  font-size:20px;font-weight:700;text-align:right;
+                                  color:#111827;outline:none;box-sizing:border-box">
                 </div>
 
                 {{-- Notes --}}
                 <div style="margin-bottom:16px">
-                    <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:5px">
+                    <label style="font-size:12px;color:#6b7280;display:block;
+                                  margin-bottom:5px">
                         Notes (optional)
                     </label>
                     <input type="text" id="sale-notes"
                            placeholder="Any sale notes…"
                            style="width:100%;height:36px;padding:0 10px;
-                              border:1px solid #d1d5db;border-radius:8px;
-                              font-size:13px;color:#111827;outline:none;
-                              box-sizing:border-box">
+                                  border:1px solid #d1d5db;border-radius:8px;
+                                  font-size:13px;color:#111827;outline:none;
+                                  box-sizing:border-box">
                 </div>
 
                 {{-- Process button --}}
                 <button onclick="processSale()"
                         id="process-btn"
-                        style="width:100%;height:50px;background:#2563eb;color:#fff;
-                           border:none;border-radius:10px;font-size:15px;font-weight:600;
-                           cursor:pointer;transition:background .15s"
+                        style="width:100%;height:50px;background:#2563eb;
+                               color:#fff;border:none;border-radius:10px;
+                               font-size:15px;font-weight:600;cursor:pointer;
+                               transition:background .15s"
                         onmouseover="this.style.background='#1d4ed8'"
                         onmouseout="this.style.background='#2563eb'">
                     Process sale — GHS 0.00
                 </button>
-
             </div>
 
         </div>
     </div>
 
-    {{-- Hidden form --}}
+    {{-- Walk-in name modal --}}
+    <div id="walkin-modal"
+         style="display:none;position:fixed;inset:0;z-index:999;
+                background:rgba(0,0,0,.5);align-items:center;
+                justify-content:center"
+         onclick="if(event.target===this) closeWalkinModal()">
+        <div style="background:#fff;border-radius:16px;padding:28px;
+                    width:100%;max-width:380px;margin:20px;
+                    box-shadow:0 20px 60px rgba(0,0,0,.2)"
+             onclick="event.stopPropagation()">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+                <div style="width:40px;height:40px;border-radius:10px;
+                            background:#eff6ff;display:flex;align-items:center;
+                            justify-content:center;flex-shrink:0">
+                    <svg style="width:20px;height:20px;color:#2563eb"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="1.5"
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p style="font-size:15px;font-weight:600;color:#111827">
+                        Walk-in/Cash Customer
+                    </p>
+                    <p style="font-size:12px;color:#9ca3af;margin-top:1px">
+                        Enter a name for the receipt (optional)
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-bottom:20px">
+                <label style="display:block;font-size:13px;font-weight:500;
+                              color:#374151;margin-bottom:6px">
+                    Customer name
+                </label>
+                <input type="text"
+                       id="walkin-name-input"
+                       placeholder="e.g. John Mensah"
+                       maxlength="100"
+                       style="width:100%;height:44px;padding:0 14px;
+                              border:1.5px solid #e5e7eb;border-radius:10px;
+                              font-size:14px;color:#111827;outline:none;
+                              transition:border-color .15s;box-sizing:border-box"
+                       onfocus="this.style.borderColor='#2563eb';
+                                this.style.boxShadow='0 0 0 3px rgba(37,99,235,.12)'"
+                       onblur="this.style.borderColor='#e5e7eb';
+                               this.style.boxShadow='none'"
+                       onkeydown="if(event.key==='Enter') confirmWalkinName()">
+                <p style="font-size:11px;color:#9ca3af;margin-top:6px">
+                    Leave blank to proceed as anonymous walk-in
+                </p>
+            </div>
+
+            <div style="display:flex;gap:10px">
+                <button type="button"
+                        onclick="confirmWalkinName()"
+                        style="flex:1;height:42px;background:#2563eb;color:#fff;
+                               border:none;border-radius:10px;font-size:14px;
+                               font-weight:600;cursor:pointer"
+                        onmouseover="this.style.background='#1d4ed8'"
+                        onmouseout="this.style.background='#2563eb'">
+                    Confirm
+                </button>
+                <button type="button"
+                        onclick="closeWalkinModal()"
+                        style="flex:1;height:42px;background:#fff;
+                               border:1.5px solid #e5e7eb;border-radius:10px;
+                               font-size:14px;font-weight:500;color:#374151;
+                               cursor:pointer"
+                        onmouseover="this.style.background='#f9fafb'"
+                        onmouseout="this.style.background='#fff'">
+                    Skip
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Hidden sale form --}}
     <form id="sale-form" method="POST"
           action="{{ route('pos.process') }}" style="display:none">
         @csrf
         <input type="hidden" name="payment_method" id="form-payment">
         <input type="hidden" name="amount_paid"    id="form-paid">
         <input type="hidden" name="customer_id"    id="form-customer">
+        <input type="hidden" name="walkin_name"    id="form-walkin">
         <input type="hidden" name="discount"       id="form-discount">
         <input type="hidden" name="notes"          id="form-notes">
         <div id="form-items"></div>
@@ -264,12 +382,12 @@
 
     @push('scripts')
         <script>
-            const allProducts = @json($products);
-            let cart           = [];
+            const allProducts   = @json($products);
+            let cart            = [];
             let selectedPayment = 'cash';
-            let searchIndex    = -1;
+            let searchIndex     = -1;
 
-            // ── Search ────────────────────────────────────────────────────────
+            // ── Search ────────────────────────────────────────────────────
             function searchProducts(query) {
                 const box = document.getElementById('search-results');
                 if (!query || query.length < 1) {
@@ -278,7 +396,7 @@
                     return;
                 }
 
-                const q = query.toLowerCase();
+                const q       = query.toLowerCase();
                 const matches = allProducts.filter(p =>
                     p.name.toLowerCase().includes(q) ||
                     p.sku?.toLowerCase().includes(q)
@@ -286,44 +404,47 @@
 
                 if (matches.length === 0) {
                     box.innerHTML = `
-            <div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px">
-                No products found
-            </div>`;
+                    <div style="padding:16px;text-align:center;
+                                color:#9ca3af;font-size:13px">
+                        No products found
+                    </div>`;
                     box.style.display = 'block';
                     return;
                 }
 
                 box.innerHTML = matches.map((p, i) => `
-        <div class="search-result-item"
-             data-index="${i}"
-             onclick="addToCartById(${p.id})"
-             style="padding:10px 14px;display:flex;align-items:center;
-                    justify-content:space-between;cursor:pointer;
-                    border-bottom:1px solid #f9fafb;transition:background .1s"
-             onmouseover="this.style.background='#f0f9ff'"
-             onmouseout="this.style.background='#fff'">
-            <div>
-                <p style="font-size:13px;font-weight:500;color:#111827">${p.name}</p>
-                <p style="font-size:11px;color:#9ca3af">
-                    ${p.sku} · ${p.category ?? ''}
-                    · <span style="color:${p.stock <= 0 ? '#ef4444' : p.stock <= 5 ? '#f59e0b' : '#6b7280'}">
-                        ${p.stock} ${p.unit} in stock
-                    </span>
-                </p>
-            </div>
-            <div style="text-align:right;flex-shrink:0;margin-left:12px">
-                <p style="font-size:13px;font-weight:600;color:#2563eb">
-                    GHS ${parseFloat(p.selling_price).toFixed(2)}
-                </p>
-                ${p.stock <= 0
+                <div class="search-result-item"
+                     data-index="${i}"
+                     onclick="addToCartById(${p.id})"
+                     style="padding:10px 14px;display:flex;align-items:center;
+                            justify-content:space-between;cursor:pointer;
+                            border-bottom:1px solid #f9fafb;transition:background .1s"
+                     onmouseover="this.style.background='#f0f9ff'"
+                     onmouseout="this.style.background='#fff'">
+                    <div>
+                        <p style="font-size:13px;font-weight:500;color:#111827">
+                            ${p.name}
+                        </p>
+                        <p style="font-size:11px;color:#9ca3af">
+                            ${p.sku} · ${p.category ?? ''}
+                            · <span style="color:${p.stock <= 0 ? '#ef4444' : p.stock <= 5 ? '#f59e0b' : '#6b7280'}">
+                                ${p.stock} ${p.unit} in stock
+                            </span>
+                        </p>
+                    </div>
+                    <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                        <p style="font-size:13px;font-weight:600;color:#2563eb">
+                            GHS ${parseFloat(p.selling_price).toFixed(2)}
+                        </p>
+                        ${p.stock <= 0
                     ? '<span style="font-size:10px;background:#fee2e2;color:#991b1b;padding:1px 6px;border-radius:20px">Out of stock</span>'
                     : p.stock <= 5
                         ? '<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:20px">Low stock</span>'
                         : '<span style="font-size:10px;background:#dcfce7;color:#166534;padding:1px 6px;border-radius:20px">In stock</span>'
                 }
-            </div>
-        </div>
-    `).join('');
+                    </div>
+                </div>
+            `).join('');
 
                 box.style.display = 'block';
                 searchIndex = -1;
@@ -360,7 +481,6 @@
                 });
             }
 
-            // Close dropdown when clicking outside
             document.addEventListener('click', function(e) {
                 const search = document.getElementById('product-search');
                 const box    = document.getElementById('search-results');
@@ -369,7 +489,7 @@
                 }
             });
 
-            // ── Cart operations ───────────────────────────────────────────────
+            // ── Cart operations ───────────────────────────────────────────
             function addToCartById(id) {
                 const product = allProducts.find(p => p.id === id);
                 if (!product) return;
@@ -388,25 +508,22 @@
                     existing.qty += 1;
                 } else {
                     cart.push({
-                        id       : product.id,
-                        name     : product.name,
-                        price    : parseFloat(product.selling_price),
-                        unit     : product.unit,
-                        stock    : parseFloat(product.stock),
-                        qty      : 1,
-                        discount : 0,
+                        id      : product.id,
+                        name    : product.name,
+                        price   : parseFloat(product.selling_price),
+                        unit    : product.unit,
+                        stock   : parseFloat(product.stock),
+                        qty     : 1,
+                        discount: 0,
                     });
                 }
 
-                // Clear search
-                document.getElementById('product-search').value = '';
+                document.getElementById('product-search').value      = '';
                 document.getElementById('search-results').style.display = 'none';
                 searchIndex = -1;
 
                 renderCart();
                 updateTotals();
-
-                // Focus back on search
                 document.getElementById('product-search').focus();
             }
 
@@ -425,7 +542,7 @@
                     return;
                 }
                 item.qty = qty;
-                renderCart();      // ← add this
+                renderCart();
                 updateTotals();
             }
 
@@ -433,7 +550,7 @@
                 const item = cart.find(i => i.id === id);
                 if (!item) return;
                 item.discount = parseFloat(val) || 0;
-                renderCart();      // ← add this
+                renderCart();
                 updateTotals();
             }
 
@@ -465,67 +582,75 @@
 
                 empty.style.display = 'none';
                 table.style.display = 'block';
-                count.textContent   = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+                count.textContent   =
+                    `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
 
                 body.innerHTML = cart.map(item => {
                     const subtotal = (item.price * item.qty) - item.discount;
                     return `
-        <tr style="border-bottom:1px solid #f9fafb">
-            <td style="padding:12px 20px">
-                <p style="font-size:13px;font-weight:500;color:#111827">${item.name}</p>
-                <p style="font-size:11px;color:#9ca3af">
-                    GHS ${item.price.toFixed(2)} / ${item.unit}
-                </p>
-            </td>
-            <td style="padding:12px 20px;text-align:center">
-                <input type="number"
-                       data-qty="${item.id}"
-                       value="${item.qty}"
-                       min="0.01" step="0.01"
-                       onchange="updateQty(${item.id}, this.value)"
-                       style="width:80px;height:32px;text-align:center;
-                              border:1px solid #d1d5db;border-radius:6px;
-                              font-size:13px;outline:none;padding:0 4px">
-            </td>
-            <td style="padding:12px 20px;text-align:right;font-size:13px;color:#6b7280">
-                ${item.price.toFixed(2)}
-            </td>
-            <td style="padding:12px 20px;text-align:right">
-                <input type="number"
-                       value="${item.discount}"
-                       min="0" step="0.01"
-                       onchange="updateDiscount(${item.id}, this.value)"
-                       style="width:70px;height:32px;text-align:right;
-                              border:1px solid #d1d5db;border-radius:6px;
-                              font-size:12px;outline:none;padding:0 6px">
-            </td>
-            <td style="padding:12px 20px;text-align:right;font-size:13px;
-                       font-weight:600;color:#111827">
-                ${subtotal.toFixed(2)}
-            </td>
-            <td style="padding:12px 16px;text-align:right">
-                <button onclick="removeFromCart(${item.id})"
-                        style="background:none;border:none;cursor:pointer;
-                               color:#d1d5db;font-size:18px;line-height:1"
-                        onmouseover="this.style.color='#ef4444'"
-                        onmouseout="this.style.color='#d1d5db'">×</button>
-            </td>
-        </tr>
-        `;
+                    <tr style="border-bottom:1px solid #f9fafb">
+                        <td style="padding:12px 20px">
+                            <p style="font-size:13px;font-weight:500;
+                                      color:#111827">${item.name}</p>
+                            <p style="font-size:11px;color:#9ca3af">
+                                GHS ${item.price.toFixed(2)} / ${item.unit}
+                            </p>
+                        </td>
+                        <td style="padding:12px 20px;text-align:center">
+                            <input type="number"
+                                   data-qty="${item.id}"
+                                   value="${item.qty}"
+                                   min="0.01" step="0.01"
+                                   onchange="updateQty(${item.id}, this.value)"
+                                   style="width:80px;height:32px;text-align:center;
+                                          border:1px solid #d1d5db;border-radius:6px;
+                                          font-size:13px;outline:none;padding:0 4px">
+                        </td>
+                        <td style="padding:12px 20px;text-align:right;
+                                   font-size:13px;color:#6b7280">
+                            ${item.price.toFixed(2)}
+                        </td>
+                        <td style="padding:12px 20px;text-align:right">
+                            <input type="number"
+                                   value="${item.discount}"
+                                   min="0" step="0.01"
+                                   onchange="updateDiscount(${item.id}, this.value)"
+                                   style="width:70px;height:32px;text-align:right;
+                                          border:1px solid #d1d5db;border-radius:6px;
+                                          font-size:12px;outline:none;padding:0 6px">
+                        </td>
+                        <td style="padding:12px 20px;text-align:right;
+                                   font-size:13px;font-weight:600;color:#111827">
+                            ${subtotal.toFixed(2)}
+                        </td>
+                        <td style="padding:12px 16px;text-align:right">
+                            <button onclick="removeFromCart(${item.id})"
+                                    style="background:none;border:none;cursor:pointer;
+                                           color:#d1d5db;font-size:18px;line-height:1"
+                                    onmouseover="this.style.color='#ef4444'"
+                                    onmouseout="this.style.color='#d1d5db'">
+                                &times;
+                            </button>
+                        </td>
+                    </tr>
+                `;
                 }).join('');
             }
 
-            // ── Totals ────────────────────────────────────────────────────────
+            // ── Totals ────────────────────────────────────────────────────
             function updateTotals() {
-                const subtotal        = cart.reduce((s, i) => s + (i.price * i.qty) - i.discount, 0);
-                const overallDiscount = parseFloat(document.getElementById('overall-discount').value) || 0;
-                const total           = Math.max(0, subtotal - overallDiscount);
+                const subtotal = cart.reduce(
+                    (s, i) => s + (i.price * i.qty) - i.discount, 0);
+                const overallDiscount =
+                    parseFloat(document.getElementById('overall-discount').value) || 0;
+                const total = Math.max(0, subtotal - overallDiscount);
 
-                document.getElementById('subtotal-display').textContent = `GHS ${subtotal.toFixed(2)}`;
-                document.getElementById('total-display').textContent    = `GHS ${total.toFixed(2)}`;
-                document.getElementById('amount-paid').value            = total.toFixed(2);
-
-                // Update process button
+                document.getElementById('subtotal-display').textContent =
+                    `GHS ${subtotal.toFixed(2)}`;
+                document.getElementById('total-display').textContent =
+                    `GHS ${total.toFixed(2)}`;
+                document.getElementById('amount-paid').value =
+                    total.toFixed(2);
                 document.getElementById('process-btn').textContent =
                     `Process sale — GHS ${total.toFixed(2)}`;
 
@@ -533,9 +658,11 @@
             }
 
             function updateChange() {
-                const total  = parseFloat(
-                    document.getElementById('total-display').textContent.replace('GHS ', '')) || 0;
-                const paid   = parseFloat(document.getElementById('amount-paid').value) || 0;
+                const total = parseFloat(
+                    document.getElementById('total-display')
+                        .textContent.replace('GHS ', '')) || 0;
+                const paid  = parseFloat(
+                    document.getElementById('amount-paid').value) || 0;
                 const change = paid - total;
                 const el     = document.getElementById('change-display');
 
@@ -543,69 +670,127 @@
                     el.textContent = `Change: GHS ${change.toFixed(2)}`;
                     el.style.color = '#16a34a';
                 } else {
-                    el.textContent = `Balance due: GHS ${Math.abs(change).toFixed(2)}`;
+                    el.textContent =
+                        `Balance due: GHS ${Math.abs(change).toFixed(2)}`;
                     el.style.color = '#dc2626';
                 }
             }
 
-            // ── Payment method ────────────────────────────────────────────────
+            // ── Payment method ────────────────────────────────────────────
             function selectPayment(method) {
                 selectedPayment = method;
-                ['cash', 'momo', 'bank', 'credit', 'split'].forEach(m => {
-                    const label = document.getElementById(`pm-${m}`);
-                    const span  = document.getElementById(`pm-label-${m}`);
-                    if (!label) return;
-                    label.style.borderColor = m === method ? '#2563eb' : '#e5e7eb';
-                    label.style.background  = m === method ? '#eff6ff' : '#fff';
-                    span.style.color        = m === method ? '#2563eb' : '#374151';
+                ['cash','momo','bank','credit','split'].forEach(m => {
+                    const el   = document.getElementById(`pm-${m}`);
+                    const span = document.getElementById(`pm-label-${m}`);
+                    if (!el) return;
+                    el.style.borderColor = m === method ? '#2563eb' : '#e5e7eb';
+                    el.style.background  = m === method ? '#eff6ff' : '#fff';
+                    span.style.color     = m === method ? '#2563eb' : '#374151';
                 });
             }
 
-            // ── Process sale ──────────────────────────────────────────────────
+            // ── Process sale ──────────────────────────────────────────────
             function processSale() {
                 if (cart.length === 0) {
-                    alert('Add at least one product to proceed.');
-                    document.getElementById('product-search').focus();
+                    alert('Cart is empty. Add products before processing.');
                     return;
                 }
 
-                const total = parseFloat(
-                    document.getElementById('total-display').textContent.replace('GHS ', '')) || 0;
-                const paid  = parseFloat(document.getElementById('amount-paid').value) || 0;
+                // Get values from UI elements
+                const total           = parseFloat(
+                    document.getElementById('total-display')
+                        .textContent.replace('GHS ', '')) || 0;
+                const amountPaid      = parseFloat(
+                    document.getElementById('amount-paid').value) || 0;
+                const overallDiscount = parseFloat(
+                    document.getElementById('overall-discount').value) || 0;
+                const notes           =
+                    document.getElementById('sale-notes').value;
+                const customerId      =
+                    document.getElementById('customer_id').value;
+                const walkinName      =
+                    document.getElementById('walkin-name-input')?.value?.trim() || '';
 
-                if (paid < total && selectedPayment !== 'credit') {
-                    const diff = (total - paid).toFixed(2);
-                    if (!confirm(`Amount paid is GHS ${diff} short of total. Record as partial payment?`)) {
-                        return;
-                    }
-                }
-
+                // Populate hidden form fields
                 document.getElementById('form-payment').value  = selectedPayment;
-                document.getElementById('form-paid').value     = paid;
-                document.getElementById('form-customer').value = document.getElementById('customer-select').value;
-                document.getElementById('form-discount').value = document.getElementById('overall-discount').value || 0;
-                document.getElementById('form-notes').value    = document.getElementById('sale-notes').value;
+                document.getElementById('form-paid').value     = amountPaid;
+                document.getElementById('form-customer').value = customerId;
+                document.getElementById('form-walkin').value   = walkinName;
+                document.getElementById('form-discount').value = overallDiscount;
+                document.getElementById('form-notes').value    = notes;
 
-                const itemsDiv = document.getElementById('form-items');
-                itemsDiv.innerHTML = '';
-                cart.forEach((item, i) => {
-                    itemsDiv.innerHTML += `
-            <input type="hidden" name="items[${i}][product_id]" value="${item.id}">
-            <input type="hidden" name="items[${i}][quantity]"   value="${item.qty}">
-            <input type="hidden" name="items[${i}][unit_price]" value="${item.price}">
-            <input type="hidden" name="items[${i}][discount]"   value="${item.discount}">
-        `;
+                // Build cart items in form-items div
+                const itemsContainer = document.getElementById('form-items');
+                itemsContainer.innerHTML = '';
+
+                cart.forEach((item, index) => {
+                    const subtotal = (item.price * item.qty) - item.discount;
+                    itemsContainer.innerHTML += `
+                    <input type="hidden"
+                           name="items[${index}][product_id]"
+                           value="${item.id}">
+                    <input type="hidden"
+                           name="items[${index}][quantity]"
+                           value="${item.qty}">
+                    <input type="hidden"
+                           name="items[${index}][unit_price]"
+                           value="${item.price}">
+                    <input type="hidden"
+                           name="items[${index}][subtotal]"
+                           value="${subtotal.toFixed(2)}">
+                `;
                 });
 
-                const btn = document.getElementById('process-btn');
-                btn.disabled      = true;
-                btn.textContent   = 'Processing…';
-                btn.style.background = '#93c5fd';
+                // Disable button to prevent double submit
+                const btn       = document.getElementById('process-btn');
+                btn.disabled    = true;
+                btn.textContent = 'Processing…';
+                btn.style.opacity = '0.7';
 
                 document.getElementById('sale-form').submit();
             }
 
-            // Focus search on load
+            // ── Walk-in modal ─────────────────────────────────────────────
+            function handleCustomerChange(value) {
+                if (value === '') {
+                    openWalkinModal();
+                } else {
+                    clearWalkinName();
+                }
+            }
+
+            function openWalkinModal() {
+                const modal = document.getElementById('walkin-modal');
+                const input = document.getElementById('walkin-name-input');
+                modal.style.display = 'flex';
+                setTimeout(() => input.focus(), 100);
+            }
+
+            function closeWalkinModal() {
+                document.getElementById('walkin-modal').style.display = 'none';
+            }
+
+            function confirmWalkinName() {
+                const input = document.getElementById('walkin-name-input');
+                const name  = input.value.trim();
+                const badge = document.getElementById('walkin-badge');
+
+                if (name) {
+                    document.getElementById('walkin-name-display').textContent = name;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                closeWalkinModal();
+            }
+
+            function clearWalkinName() {
+                document.getElementById('walkin-name-input').value = '';
+                document.getElementById('walkin-badge').style.display = 'none';
+            }
+
+            // ── Init ──────────────────────────────────────────────────────
             document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('product-search').focus();
                 selectPayment('cash');
