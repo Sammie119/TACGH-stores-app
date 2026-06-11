@@ -62,11 +62,13 @@ class PosController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity'   => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.discount'   => 'nullable|numeric|min:0',
+            'items.*.subtotal'   => 'required|numeric|min:0',
             'payment_method'     => 'required|in:cash,momo,bank,credit,split',
             'amount_paid'        => 'required|numeric|min:0',
             'customer_id'        => 'nullable|exists:customers,id',
+            'walkin_name'        => 'nullable|string|max:100',
             'discount'           => 'nullable|numeric|min:0',
+            'notes'              => 'nullable|string|max:500',
         ]);
 
         $user          = auth()->user();
@@ -76,76 +78,85 @@ class PosController extends Controller
             return back()->with('error', 'No active financial year.');
         }
 
-        // Check financial year is not closed
         if ($financialYear->is_closed) {
-            return back()->with('error', 'Financial year is closed. No transactions allowed.');
+            return back()->with('error',
+                'Financial year is closed. No transactions allowed.');
         }
 
         $sale = DB::transaction(function () use ($request, $user, $financialYear) {
 
+            // ── Validate stock & calculate total from subtotals ───────────
+            // We trust the subtotal from JS because it already has item
+            // discounts deducted: subtotal = (unit_price * qty) - item_discount
             $totalAmount = 0;
 
-            // Calculate totals and validate stock
             foreach ($request->items as $item) {
                 $stock = BranchStock::where('branch_id', $user->branch_id)
                     ->where('product_id', $item['product_id'])
                     ->first();
 
                 if (!$stock || $stock->quantity < $item['quantity']) {
-                    $product  = Product::find($item['product_id']);
+                    $product   = Product::find($item['product_id']);
                     $available = $stock?->quantity ?? 0;
                     throw new \Exception(
-                        "Insufficient stock for {$product->name}. Available: {$available}"
+                        "Insufficient stock for {$product->name}. "
+                        . "Available: {$available}"
                     );
                 }
 
-                $itemDiscount = $item['discount'] ?? 0;
-                $subtotal     = ($item['unit_price'] * $item['quantity']) - $itemDiscount;
-                $totalAmount += $subtotal;
+                // Use the subtotal sent from JS — already has item discount applied
+                $totalAmount += (float) $item['subtotal'];
             }
 
-            $overallDiscount = $request->discount ?? 0;
+            // ── Apply overall order discount ──────────────────────────────
+            $overallDiscount = (float) ($request->discount ?? 0);
             $finalTotal      = max(0, $totalAmount - $overallDiscount);
-            $amountPaid      = $request->amount_paid;
+            $amountPaid      = (float) $request->amount_paid;
             $balanceDue      = max(0, $finalTotal - $amountPaid);
 
-            // Determine status
+            // ── Determine status ──────────────────────────────────────────
             $status = 'completed';
-            if ($amountPaid <= 0) {
+            if ($request->payment_method === 'credit' && $amountPaid <= 0) {
                 $status = 'credit';
-            } elseif ($balanceDue > 0) {
+            } elseif ($balanceDue > 0.009) {
+                // Use 0.009 threshold to avoid floating point rounding issues
                 $status = 'partial';
             }
 
-            // Create sale
+            // ── Create sale ───────────────────────────────────────────────
             $sale = Sale::create([
-                'invoice_no'       => Sale::generateInvoiceNo(),
-                'branch_id'        => $user->branch_id,
-                'user_id'          => $user->id,
-                'customer_id'    => $request->customer_id ?: null,
-                'walkin_name'    => !$request->customer_id
+                'invoice_no'        => Sale::generateInvoiceNo(),
+                'branch_id'         => $user->branch_id,
+                'user_id'           => $user->id,
+                'customer_id'       => $request->customer_id ?: null,
+                'walkin_name'       => !$request->customer_id
                     ? $request->walkin_name
-                    : null, // ← add this
-                'financial_year_id'=> $financialYear->id,
-                'total_amount'     => $finalTotal,
-                'discount'         => $overallDiscount,
-                'amount_paid'      => $amountPaid,
-                'balance_due'      => $balanceDue,
-                'payment_method'   => $request->payment_method,
-                'status'           => $status,
-                'notes'            => $request->notes,
+                    : null,
+                'financial_year_id' => $financialYear->id,
+                'total_amount'      => $finalTotal,
+                'discount'          => $overallDiscount,
+                'amount_paid'       => $amountPaid,
+                'balance_due'       => $balanceDue,
+                'payment_method'    => $request->payment_method,
+                'status'            => $status,
+                'notes'             => $request->notes,
             ]);
 
-            // Create items and deduct stock
+            // ── Create items and deduct stock ─────────────────────────────
             foreach ($request->items as $item) {
-                $itemDiscount = $item['discount'] ?? 0;
-                $subtotal     = ($item['unit_price'] * $item['quantity']) - $itemDiscount;
+                $qty        = (float) $item['quantity'];
+                $unitPrice  = (float) $item['unit_price'];
+                $subtotal   = (float) $item['subtotal'];
+
+                // Derive item discount from the difference
+                // (unit_price * qty) - subtotal = item discount
+                $itemDiscount = max(0, ($unitPrice * $qty) - $subtotal);
 
                 SaleItem::create([
                     'sale_id'    => $sale->id,
                     'product_id' => $item['product_id'],
-                    'quantity'   => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'quantity'   => $qty,
+                    'unit_price' => $unitPrice,
                     'discount'   => $itemDiscount,
                     'subtotal'   => $subtotal,
                 ]);
@@ -155,14 +166,14 @@ class PosController extends Controller
                     ->where('product_id', $item['product_id'])
                     ->first();
 
-                $stock->decrementStock($item['quantity']);
+                $stock->decrementStock($qty);
 
                 StockMovement::record(
                     branchId     : $user->branch_id,
                     productId    : $item['product_id'],
                     userId       : $user->id,
                     type         : 'sale',
-                    quantity     : -$item['quantity'],
+                    quantity     : -$qty,
                     balanceAfter : $stock->quantity,
                     referenceType: 'sale',
                     referenceId  : $sale->id,
@@ -170,7 +181,7 @@ class PosController extends Controller
                 );
             }
 
-            // Update customer balance if credit
+            // ── Update customer credit balance ────────────────────────────
             if ($request->customer_id && $balanceDue > 0) {
                 $customer = Customer::find($request->customer_id);
                 $customer->increment('balance', $balanceDue);
