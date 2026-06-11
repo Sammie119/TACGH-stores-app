@@ -73,7 +73,7 @@ class BranchController extends Controller
             'logo'       => 'nullable|image|max:2048',
         ]);
 
-        if (!auth()->user()->hasRole('super_admin')) {
+        if (!auth()->user()->hasRole('super_admin|general_manager')) {
             abort(403, 'Only super admins can create branches.');
         }
 
@@ -129,7 +129,7 @@ class BranchController extends Controller
             'logo'       => 'nullable|image|max:2048',
         ]);
 
-        if (!auth()->user()->hasRole('super_admin')) {
+        if (!auth()->user()->hasRole('super_admin|general_manager|branch_manager')) {
             abort(403, 'Only super admins can create branches.');
         }
 

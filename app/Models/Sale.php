@@ -39,7 +39,7 @@ class Sale extends Model
     public static function generateInvoiceNo(): string
     {
         $last = static::latest()->first();
-        $next = $last ? ((int) substr($last->invoice_no, 4)) + 1 : 1;
+        $next = $last ? ((int) substr($last->invoice_no, 8)) + 1 : 1;
         $prefix = setting('invoice_prefix', 'TAC');
         return $prefix.'-' . str_pad($next, 6, '0', STR_PAD_LEFT);
     }

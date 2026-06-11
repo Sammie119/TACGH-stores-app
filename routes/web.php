@@ -191,6 +191,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('product/import/confirm',  [ProductImportController::class, 'confirm'])->name('products.import.confirm');
     Route::post('product/import/process', [ProductImportController::class, 'process'])->name('products.import.process');
     Route::get('product/import/template', [ProductImportController::class, 'downloadTemplate'])->name('products.import.template');
-
-
 });
