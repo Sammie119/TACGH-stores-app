@@ -26,6 +26,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\SupplierPaymentController;
+use App\Http\Controllers\CashierAccountController;
+use App\Http\Controllers\ConsignmentController;
 
 require __DIR__.'/auth.php';
 
@@ -87,6 +89,20 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('returns/{return}/reject',  [ProductReturnController::class, 'reject'])->name('returns.reject');
     Route::patch('returns/{id}/restore',     [ProductReturnController::class, 'restore'])->name('returns.restore');
 
+    // Consignments
+    Route::resource('consignments', ConsignmentController::class)
+        ->only(['index', 'create', 'store', 'show', 'destroy']);
+    Route::patch('consignments/{consignment}/dispatch', [ConsignmentController::class, 'dispatch'])->name('consignments.dispatch');
+    Route::post('consignments/{consignment}/payment',   [ConsignmentController::class, 'recordPayment'])->name('consignments.payment');
+    Route::patch('consignments/{consignment}/cancel',          [ConsignmentController::class, 'cancel'])->name('consignments.cancel');
+    Route::patch('consignments/{id}/restore',                  [ConsignmentController::class, 'restore'])->name('consignments.restore');
+    Route::post('consignments/{consignment}/items',            [ConsignmentController::class, 'addItem'])->name('consignments.items.add');
+    Route::delete('consignments/{consignment}/items/{item}',   [ConsignmentController::class, 'removeItem'])->name('consignments.items.remove');
+
+    // Cashier accounts
+    Route::get('cashier-accounts',        [CashierAccountController::class, 'index'])->name('cashier-accounts.index');
+    Route::get('cashier-accounts/{user}', [CashierAccountController::class, 'show'])->name('cashier-accounts.show');
+
     // Deposits
     Route::resource('deposits', BankDepositController::class);
     Route::patch('deposits/{deposit}/verify',     [BankDepositController::class, 'verify'])->name('deposits.verify');
@@ -116,10 +132,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports/product',          [ReportController::class, 'product'])->name('reports.product');
     Route::get('reports/profit-loss',      [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
     Route::get('reports/stock-balance',    [ReportController::class, 'stockBalance'])->name('reports.stock-balance');
+    Route::get('reports/consignments',        [ReportController::class, 'consignments'])->name('reports.consignments');
+    Route::get('reports/export/consignments', [ReportController::class, 'exportConsignments'])->name('reports.export.consignments');
 
     // Notifications
-    Route::get('notifications', [NotificationController::class, 'index'])
-        ->name('notifications.index');
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
 
     // Profile
     Route::get('profile',           [ProfileController::class, 'edit'])->name('profile.edit');
@@ -170,6 +187,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('product-report',                 [PdfController::class, 'productReport'])->name('product-report');
         Route::get('profit-loss',                    [PdfController::class, 'profitLossReport'])->name('profit-loss');
         Route::get('stock-balance',                  [PdfController::class, 'stockBalance'])->name('stock-balance');
+        Route::get('consignment-payment/{payment}',  [PdfController::class, 'consignmentPaymentReceipt'])->name('consignment-payment');
+        Route::get('consignment-report',             [PdfController::class, 'consignmentReport'])->name('consignment-report');
+        Route::get('consignment-invoice/{consignment}', [PdfController::class, 'consignmentInvoice'])->name('consignment-invoice');
     });
 
     // In routes/web.php — inside auth middleware group

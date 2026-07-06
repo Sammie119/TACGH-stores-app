@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\BankDeposit;
 use App\Models\Branch;
+use App\Models\Consignment;
+use App\Models\ConsignmentPayment;
 use App\Models\BranchStock;
 use App\Models\ProductCategory;
 use App\Models\ProductReturn;
@@ -59,7 +61,7 @@ class PdfController extends Controller
         $logoBase64 = $this->getLogoBase64($sale->branch?->logo);
 
         $pdf = Pdf::loadView('pdf.receipt', compact('sale', 'logoBase64'))
-            ->setPaper([0, 0, 283.46, 800], 'portrait')
+            ->setPaper('a5', 'portrait')
             ->setOptions([
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled'      => true,
@@ -77,6 +79,12 @@ class PdfController extends Controller
         $user         = auth()->user();
         $isSuperAdmin = $this->canViewAllBranches();
 
+        // Default to the current month when no date range is given, so an
+        // unfiltered export can't try to render the entire sales history
+        // (dompdf exhausts memory rendering thousands of rows in one table).
+        $dateFrom = $request->date_from ?? now()->startOfMonth()->format('Y-m-d');
+        $dateTo   = $request->date_to   ?? now()->format('Y-m-d');
+
         $query = Sale::with(['branch', 'user', 'customer'])
             ->when(!$isSuperAdmin, fn($q) =>
             $q->where('branch_id', $user->branch_id))
@@ -84,11 +92,22 @@ class PdfController extends Controller
                 fn($q) => $q->where('branch_id', $request->branch_id))
             ->when($request->status,
                 fn($q) => $q->where('status', $request->status))
-            ->when($request->date_from,
-                fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-            ->when($request->date_to,
-                fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->whereDate('created_at', '>=', $dateFrom)
+            ->whereDate('created_at', '<=', $dateTo)
             ->latest();
+
+        $maxRows  = 5000;
+        $rowCount = (clone $query)->count();
+        if ($rowCount > $maxRows) {
+            return back()->with('error',
+                'This date range has ' . number_format($rowCount) . ' sales — too many to export as PDF. '
+                . 'Please narrow the date range, or use the Excel export for larger datasets.'
+            );
+        }
+
+        // Rendering a few thousand rows in one dompdf table needs far more
+        // headroom than the default memory_limit; raise it for this request only.
+        ini_set('memory_limit', '3G');
 
         $sales = $query->get();
 
@@ -105,9 +124,6 @@ class PdfController extends Controller
                 'count' => $group->count(),
                 'total' => $group->sum('total_amount'),
             ]);
-
-        $dateFrom = $request->date_from;
-        $dateTo   = $request->date_to;
 
         $pdf = Pdf::loadView('pdf.sales-report', compact(
             'sales', 'summary', 'byPayment', 'dateFrom', 'dateTo', 'isSuperAdmin'
@@ -321,10 +337,6 @@ class PdfController extends Controller
                 'isHtml5ParserEnabled' => true,
                 'defaultFont'          => 'sans-serif',
                 'dpi'                  => 150,
-                'margin_top'           => 15,
-                'margin_right'         => 15,
-                'margin_bottom'        => 20,
-                'margin_left'          => 15,
             ]);
 
         return $pdf->stream(
@@ -450,16 +462,96 @@ class PdfController extends Controller
                 'isHtml5ParserEnabled' => true,
                 'defaultFont'          => 'sans-serif',
                 'dpi'                  => 150,
-                'margin_top'           => 15,
-                'margin_right'         => 15,
-                'margin_bottom'        => 20,
-                'margin_left'          => 15,
             ]);
 
         return $pdf->stream(
             'profit-loss-' . $dateFrom . '-to-' . $dateTo . '.pdf',
             ['Attachment' => false]
         );
+    }
+
+    // ── Consignment payment receipt ───────────────────────────────
+    public function consignmentPaymentReceipt(ConsignmentPayment $payment)
+    {
+        $payment->load(['consignment.branch', 'consignment.items.product', 'consignment.customer', 'paidBy']);
+
+        $logoBase64 = $this->getLogoBase64($payment->consignment->branch?->logo);
+
+        $pdf = Pdf::loadView('pdf.consignment-payment-receipt', compact('payment', 'logoBase64'))
+            ->setPaper('a5', 'portrait')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled'      => true,
+                'defaultFont'          => 'sans-serif',
+                'dpi'                  => 150,
+            ]);
+
+        return $pdf->stream('payment-' . $payment->reference . '.pdf', ['Attachment' => false]);
+    }
+
+    // ── Consignment report PDF ────────────────────────────────────
+    public function consignmentReport(Request $request)
+    {
+        $user         = auth()->user();
+        $isSuperAdmin = $this->canViewAllBranches();
+        $canViewAll   = $user->can('view all branch consignments');
+
+        $consignments = Consignment::with(['branch', 'user', 'customer'])
+            ->when(!$isSuperAdmin && !$canViewAll,
+                fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id,
+                fn($q) => $q->where('branch_id', $request->branch_id))
+            ->when($request->status,
+                fn($q) => $q->where('status', $request->status))
+            ->when($request->date_from,
+                fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+            ->when($request->date_to,
+                fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->latest()
+            ->get();
+
+        $summary = [
+            'total_value' => $consignments->sum('total_value'),
+            'amount_paid' => $consignments->sum('amount_paid'),
+            'balance_due' => $consignments->sum('balance_due'),
+            'total_count' => $consignments->count(),
+        ];
+
+        $byStatus = $consignments->groupBy('status')->map(fn($group) => [
+            'count'       => $group->count(),
+            'total_value' => $group->sum('total_value'),
+            'balance_due' => $group->sum('balance_due'),
+        ]);
+
+        $dateFrom = $request->date_from;
+        $dateTo   = $request->date_to;
+
+        $pdf = Pdf::loadView('pdf.consignment-report', compact(
+            'consignments', 'summary', 'byStatus', 'dateFrom', 'dateTo', 'isSuperAdmin'
+        ))->setPaper('a4', 'landscape')
+          ->setOptions([
+              'isHtml5ParserEnabled' => true,
+              'defaultFont'          => 'sans-serif',
+          ]);
+
+        return $pdf->stream('consignment-report-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    // ── Consignment invoice PDF ────────────────────────────────────
+    public function consignmentInvoice(Consignment $consignment)
+    {
+        $consignment->load(['branch', 'user', 'customer', 'items.product']);
+
+        $pdf = Pdf::loadView('pdf.consignment-invoice', compact('consignment'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled'      => true,
+                'defaultFont'          => 'sans-serif',
+                'dpi'                  => 150,
+            ]);
+
+        return $pdf->stream('invoice-' . $consignment->reference_no . '.pdf', ['Attachment' => false]);
     }
 
     // ── Stock balance report PDF ──────────────────────────────────
@@ -501,10 +593,6 @@ class PdfController extends Controller
                 'isHtml5ParserEnabled' => true,
                 'defaultFont'          => 'sans-serif',
                 'dpi'                  => 150,
-                'margin_top'           => 15,
-                'margin_right'         => 15,
-                'margin_bottom'        => 20,
-                'margin_left'          => 15,
             ]);
 
         return $pdf->stream(

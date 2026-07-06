@@ -153,11 +153,11 @@
 
                     <td class="px-5 py-3 font-semibold
                            {{ $isIn ? 'text-green-600' : ($isOut ? 'text-red-600' : 'text-gray-700') }}">
-                        {{ $isIn ? '+' : '' }}{{ number_format($movement->quantity, 2) }}
+                        {{ $isIn ? '+' : '' }}{{ number_format($movement->quantity, 0) }}
                     </td>
 
                     <td class="px-5 py-3 text-gray-700">
-                        {{ number_format($movement->balance_after, 2) }}
+                        {{ number_format($movement->balance_after, 0) }}
                     </td>
 
                     <td class="px-5 py-3 text-gray-600">

@@ -208,7 +208,7 @@
                         </td>
 
                         <td class="px-5 py-3 text-right font-medium text-gray-700">
-                            {{ number_format($item->system_quantity, 2) }}
+                            {{ number_format($item->system_quantity, 0) }}
                             <span class="text-xs text-gray-400">
                         {{ $item->product?->unit }}
                     </span>
@@ -252,14 +252,14 @@
                             @if($hasCounted && $variance !== null)
                                 @if($variance > 0)
                                     <span style="color:#16a34a;font-weight:600">
-                            +{{ number_format($variance, 2) }}
+                            +{{ number_format($variance, 0) }}
                         </span>
                                 @elseif($variance < 0)
                                     <span style="color:#dc2626;font-weight:600">
-                            {{ number_format($variance, 2) }}
+                            {{ number_format($variance, 0) }}
                         </span>
                                 @else
-                                    <span class="text-gray-400">0.00</span>
+                                    <span class="text-gray-400">0</span>
                                 @endif
                             @else
                                 <span class="text-gray-300">—</span>
@@ -343,12 +343,12 @@
                         </td>
 
                         <td class="px-5 py-3 text-right text-gray-700">
-                            {{ number_format($item->system_quantity, 2) }}
+                            {{ number_format($item->system_quantity, 0) }}
                         </td>
 
                         <td class="px-5 py-3 text-right font-medium text-gray-800">
                             {{ $item->counted_quantity !== null
-                                ? number_format($item->counted_quantity, 2)
+                                ? number_format($item->counted_quantity, 0)
                                 : '—' }}
                         </td>
 
@@ -356,11 +356,11 @@
                             @if($variance === null)
                                 <span class="text-gray-300">—</span>
                             @elseif($variance > 0)
-                                <span style="color:#16a34a">+{{ number_format($variance, 2) }}</span>
+                                <span style="color:#16a34a">+{{ number_format($variance, 0) }}</span>
                             @elseif($variance < 0)
-                                <span style="color:#dc2626">{{ number_format($variance, 2) }}</span>
+                                <span style="color:#dc2626">{{ number_format($variance, 0) }}</span>
                             @else
-                                <span class="text-gray-400">0.00</span>
+                                <span class="text-gray-400">0</span>
                             @endif
                         </td>
 

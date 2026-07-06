@@ -315,7 +315,7 @@
                 <tr>
                     <td class="font-bold text-blue">{{ $i + 1 }}</td>
                     <td class="font-bold">{{ $product->product?->name }}</td>
-                    <td class="text-right">{{ number_format($product->total_qty, 2) }}</td>
+                    <td class="text-right">{{ number_format($product->total_qty, 0) }}</td>
                     <td class="text-right font-bold">
                         GHS {{ number_format($product->total_revenue, 2) }}
                     </td>

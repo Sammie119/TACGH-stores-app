@@ -52,7 +52,7 @@
         <div class="info-box">
             <div class="info-label">Current stock</div>
             <div class="info-value font-bold text-blue" style="font-size:14px">
-                {{ number_format($summary['current_stock'], 2) }} {{ $selectedProduct->unit }}
+                {{ number_format($summary['current_stock'], 0) }} {{ $selectedProduct->unit }}
             </div>
             <div style="font-size:10px;color:#6b7280">
                 Value: GHS {{ number_format($summary['stock_value'], 2) }}
@@ -61,7 +61,7 @@
         <div class="info-box">
             <div class="info-label">Units sold</div>
             <div class="info-value font-bold" style="font-size:14px">
-                {{ number_format($summary['total_qty_sold'], 2) }}
+                {{ number_format($summary['total_qty_sold'], 0) }}
             </div>
             <div style="font-size:10px;color:#6b7280">
                 Revenue: GHS {{ number_format($summary['total_revenue'], 2) }}
@@ -70,7 +70,7 @@
         <div class="info-box">
             <div class="info-label">Units returned</div>
             <div class="info-value font-bold" style="font-size:14px;color:#dc2626">
-                {{ number_format($summary['total_qty_returned'], 2) }}
+                {{ number_format($summary['total_qty_returned'], 0) }}
             </div>
             <div style="font-size:10px;color:#6b7280">
                 Refunded: GHS {{ number_format($summary['total_refunded'], 2) }}
@@ -114,7 +114,7 @@
                     <td class="font-bold">{{ $stock->branch?->name }}</td>
                     <td class="text-right font-bold
                        {{ $isOut ? 'text-red' : ($isLow ? '' : 'text-green') }}">
-                        {{ number_format($stock->quantity, 2) }}
+                        {{ number_format($stock->quantity, 0) }}
                     </td>
                     <td class="text-right">
                         GHS {{ number_format($stock->quantity * $selectedProduct->cost_price, 2) }}
@@ -157,7 +157,7 @@
                     <td class="monospace text-sm">{{ $item->sale->invoice_no }}</td>
                     <td>{{ $item->sale->branch?->name }}</td>
                     <td>{{ $item->sale->user?->name }}</td>
-                    <td class="text-right font-bold">{{ number_format($item->quantity, 2) }}</td>
+                    <td class="text-right font-bold">{{ number_format($item->quantity, 0) }}</td>
                     <td class="text-right">GHS {{ number_format($item->unit_price, 2) }}</td>
                     <td class="text-right font-bold text-green">
                         GHS {{ number_format($item->subtotal, 2) }}
@@ -169,7 +169,7 @@
             <tfoot>
             <tr>
                 <td colspan="3" class="text-right">Total</td>
-                <td class="text-right">{{ number_format($salesData->sum('quantity'), 2) }}</td>
+                <td class="text-right">{{ number_format($salesData->sum('quantity'), 0) }}</td>
                 <td></td>
                 <td class="text-right text-green">
                     GHS {{ number_format($salesData->sum('subtotal'), 2) }}
@@ -205,7 +205,7 @@
                 <tr>
                     <td class="monospace text-sm">{{ $ret->sale?->invoice_no }}</td>
                     <td><span class="badge {{ $bc }}">{{ ucfirst($ret->type) }}</span></td>
-                    <td class="text-right">{{ number_format($ret->quantity, 2) }}</td>
+                    <td class="text-right">{{ number_format($ret->quantity, 0) }}</td>
                     <td class="text-right text-red">
                         GHS {{ number_format($ret->refund_amount, 2) }}
                     </td>
@@ -242,8 +242,8 @@
                     <td class="monospace text-sm">{{ $p->purchaseOrder->po_number }}</td>
                     <td>{{ $p->purchaseOrder->supplier?->name }}</td>
                     <td>{{ $p->purchaseOrder->branch?->name }}</td>
-                    <td class="text-right">{{ number_format($p->quantity_ordered, 2) }}</td>
-                    <td class="text-right">{{ number_format($p->quantity_received, 2) }}</td>
+                    <td class="text-right">{{ number_format($p->quantity_ordered, 0) }}</td>
+                    <td class="text-right">{{ number_format($p->quantity_received, 0) }}</td>
                     <td class="text-right">GHS {{ number_format($p->unit_cost, 2) }}</td>
                     <td class="text-right font-bold">GHS {{ number_format($p->subtotal, 2) }}</td>
                     <td>{{ $p->purchaseOrder->created_at->format('d M Y') }}</td>
@@ -285,9 +285,9 @@
                     <td>{{ $mov->branch?->name }}</td>
                     <td>{{ $mov->user?->name }}</td>
                     <td class="text-right font-bold {{ $isIn ? 'text-green' : 'text-red' }}">
-                        {{ $isIn ? '+' : '-' }}{{ number_format($mov->quantity, 2) }}
+                        {{ $isIn ? '+' : '-' }}{{ number_format($mov->quantity, 0) }}
                     </td>
-                    <td class="text-right">{{ number_format($mov->balance_after, 2) }}</td>
+                    <td class="text-right">{{ number_format($mov->balance_after, 0) }}</td>
                     <td class="text-gray text-sm">
                         {{ Str::limit($mov->notes ?? '—', 30) }}
                     </td>

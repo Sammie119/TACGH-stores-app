@@ -58,7 +58,7 @@ class SaleController extends Controller
         $sales    = $query->latest()->paginate(20)->withQueryString();
         $branches = Branch::where('is_active', true)->get();
         $statuses = ['completed', 'partial', 'credit', 'cancelled'];
-        $paymentMethods = ['cash', 'momo', 'bank', 'credit', 'split'];
+        $paymentMethods = ['cash', 'momo', 'bank', 'pos', 'split'];
 
         // Summary for today
         $todayQuery = Sale::where('status', 'completed')

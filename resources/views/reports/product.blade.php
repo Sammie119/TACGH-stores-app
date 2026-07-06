@@ -197,7 +197,7 @@
                             </td>
                             <td class="px-5 py-3 text-right font-bold
                            {{ $isOut ? 'text-red-600' : ($isLow ? 'text-amber-600' : 'text-gray-800') }}">
-                                {{ number_format($stock->quantity, 2) }}
+                                {{ number_format($stock->quantity, 0) }}
                                 <span class="text-xs font-normal text-gray-400">
                         {{ $selectedProduct->unit }}
                     </span>
@@ -278,7 +278,7 @@
                                 {{ $item->sale->branch?->name }}
                             </td>
                             <td class="px-5 py-3 text-right font-medium text-gray-800">
-                                {{ number_format($item->quantity, 2) }}
+                                {{ number_format($item->quantity, 0) }}
                             </td>
                             <td class="px-5 py-3 text-right text-gray-600">
                                 GHS {{ number_format($item->unit_price, 2) }}
@@ -298,7 +298,7 @@
                             Total
                         </td>
                         <td class="px-5 py-3 text-right font-bold text-gray-800">
-                            {{ number_format($salesData->sum('quantity'), 2) }}
+                            {{ number_format($salesData->sum('quantity'), 0) }}
                         </td>
                         <td></td>
                         <td class="px-5 py-3 text-right font-bold text-green-600">
@@ -361,7 +361,7 @@
                     </span>
                             </td>
                             <td class="px-5 py-3 text-right text-gray-700">
-                                {{ number_format($ret->quantity, 2) }}
+                                {{ number_format($ret->quantity, 0) }}
                             </td>
                             <td class="px-5 py-3 text-right font-semibold text-red-500">
                                 GHS {{ number_format($ret->refund_amount, 2) }}
@@ -423,10 +423,10 @@
                                 {{ $purchase->purchaseOrder->supplier?->name }}
                             </td>
                             <td class="px-5 py-3 text-right text-gray-700">
-                                {{ number_format($purchase->quantity_ordered, 2) }}
+                                {{ number_format($purchase->quantity_ordered, 0) }}
                             </td>
                             <td class="px-5 py-3 text-right text-gray-700">
-                                {{ number_format($purchase->quantity_received, 2) }}
+                                {{ number_format($purchase->quantity_received, 0) }}
                             </td>
                             <td class="px-5 py-3 text-right text-gray-600">
                                 GHS {{ number_format($purchase->unit_cost, 2) }}
@@ -492,10 +492,10 @@
                             </td>
                             <td class="px-5 py-3 text-right font-medium
                            {{ $isIn ? 'text-green-600' : 'text-red-500' }}">
-                                {{ $isIn ? '+' : '-' }}{{ number_format($mov->quantity, 2) }}
+                                {{ $isIn ? '+' : '-' }}{{ number_format($mov->quantity, 0) }}
                             </td>
                             <td class="px-5 py-3 text-right text-gray-700">
-                                {{ number_format($mov->balance_after, 2) }}
+                                {{ number_format($mov->balance_after, 0) }}
                             </td>
                             <td class="px-5 py-3 text-xs text-gray-500">
                                 {{ $mov->notes ?? '—' }}

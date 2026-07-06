@@ -14,14 +14,17 @@ class Sale extends Model
     protected $fillable = [
         'invoice_no', 'branch_id', 'user_id', 'customer_id',
         'financial_year_id', 'total_amount', 'discount',
-        'amount_paid', 'balance_due', 'payment_method', 'status', 'notes', 'walkin_name'
+        'amount_paid', 'balance_due', 'payment_method', 'status', 'notes', 'walkin_name',
+        'split_method_1', 'split_amount_1', 'split_method_2', 'split_amount_2',
     ];
 
     protected $casts = [
-        'total_amount' => 'decimal:2',
-        'discount'     => 'decimal:2',
-        'amount_paid'  => 'decimal:2',
-        'balance_due'  => 'decimal:2',
+        'total_amount'   => 'decimal:2',
+        'discount'       => 'decimal:2',
+        'amount_paid'    => 'decimal:2',
+        'balance_due'    => 'decimal:2',
+        'split_amount_1' => 'decimal:2',
+        'split_amount_2' => 'decimal:2',
     ];
 
     public function getActivitylogOptions(): LogOptions

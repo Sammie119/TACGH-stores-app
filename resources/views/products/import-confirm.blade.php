@@ -188,7 +188,7 @@
                         </td>
                         <td class="px-5 py-3 text-right text-gray-700">
                             {{ $item['stock'] > 0
-                                ? number_format($item['stock'], 2)
+                                ? number_format($item['stock'], 0)
                                 : '—' }}
                         </td>
                         <td class="px-5 py-3 text-gray-600 text-xs">

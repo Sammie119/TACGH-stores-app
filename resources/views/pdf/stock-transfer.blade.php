@@ -57,7 +57,7 @@
                 <td class="font-bold">{{ $item->product?->name }}</td>
                 <td class="monospace text-sm">{{ $item->product?->sku }}</td>
                 <td class="text-right font-bold">
-                    {{ number_format($item->quantity, 2) }}
+                    {{ number_format($item->quantity, 0) }}
                 </td>
                 <td>{{ $item->product?->unit }}</td>
                 <td class="text-gray">{{ $item->notes ?? '—' }}</td>

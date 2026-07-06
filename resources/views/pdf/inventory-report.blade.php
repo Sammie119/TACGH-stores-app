@@ -69,7 +69,7 @@
                 @endif
                 <td class="text-right font-bold
                         {{ $isOut ? 'text-red' : ($isLow ? '' : 'text-green') }}">
-                    {{ number_format($item->quantity, 2) }}
+                    {{ number_format($item->quantity, 0) }}
                 </td>
                 <td>{{ $item->product->unit }}</td>
                 <td class="text-right">{{ $item->product->reorder_level }}</td>

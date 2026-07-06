@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\BranchStock;
+use App\Models\User;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Sale;
@@ -16,8 +17,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Exports\SalesExport;
 use App\Exports\InventoryExport;
+use App\Exports\ConsignmentExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\PurchaseOrderItem;
+use App\Models\Consignment;
 
 class ReportController extends Controller
 {
@@ -54,6 +57,9 @@ class ReportController extends Controller
         }
         if ($request->date_to) {
             $query->whereDate('created_at', '<=', $request->date_to);
+        }
+        if ($request->user_id) {
+            $query->where('user_id', $request->user_id);
         }
 
         $sales = $query->latest()->paginate(25)->withQueryString();
@@ -101,9 +107,15 @@ class ReportController extends Controller
 
         $branches = Branch::where('is_active', true)->get();
 
+        $cashiers = User::orderBy('name')
+            ->when(!$isSuperAdmin, fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->whereIn('id', Sale::distinct()->pluck('user_id'))
+            ->get(['id', 'name']);
+
         return view('reports.sales', compact(
             'sales', 'summary', 'byPayment', 'topProducts',
-            'branches', 'isSuperAdmin'
+            'branches', 'cashiers', 'isSuperAdmin'
         ));
     }
 
@@ -249,7 +261,7 @@ class ReportController extends Controller
 
         return Excel::download(
             new SalesExport($request->only([
-                'branch_id', 'date_from', 'date_to', 'status'
+                'branch_id', 'date_from', 'date_to', 'status', 'payment_method', 'user_id'
             ])),
             $filename
         );
@@ -588,5 +600,73 @@ class ReportController extends Controller
             'totalItems', 'lowCount', 'outCount',
             'isSuperAdmin', 'branchId'
         ));
+    }
+
+    // ── Consignment report ────────────────────────────────────────
+    public function consignments(Request $request)
+    {
+        $user         = auth()->user();
+        $isSuperAdmin = $this->canViewAllBranches();
+        $canViewAll   = $user->can('view all branch consignments');
+
+        $query = Consignment::with(['branch', 'user', 'customer'])
+            ->when(!$isSuperAdmin && !$canViewAll,
+                fn($q) => $q->where('branch_id', $user->branch_id));
+
+        if ($request->branch_id) { $query->where('branch_id', $request->branch_id); }
+        if ($request->status)    { $query->where('status', $request->status); }
+        if ($request->date_from) { $query->whereDate('created_at', '>=', $request->date_from); }
+        if ($request->date_to)   { $query->whereDate('created_at', '<=', $request->date_to); }
+
+        $consignments = $query->latest()->paginate(25)->withQueryString();
+
+        $summary = [
+            'total_value' => (clone $query)->sum('total_value'),
+            'amount_paid' => (clone $query)->sum('amount_paid'),
+            'balance_due' => (clone $query)->sum('balance_due'),
+            'total_count' => (clone $query)->count(),
+        ];
+
+        $byStatus = Consignment::select('status',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(total_value) as total_value'),
+                DB::raw('SUM(balance_due) as balance_due'))
+            ->when(!$isSuperAdmin && !$canViewAll,
+                fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+            ->when($request->date_to,   fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->groupBy('status')
+            ->get();
+
+        $topDebtors = Consignment::select('customer_id', 'walkin_name',
+                DB::raw('SUM(balance_due) as total_owed'),
+                DB::raw('COUNT(*) as consignment_count'))
+            ->with('customer')
+            ->whereIn('status', ['dispatched', 'partial'])
+            ->when(!$isSuperAdmin && !$canViewAll,
+                fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->groupBy('customer_id', 'walkin_name')
+            ->orderByDesc('total_owed')
+            ->take(10)
+            ->get();
+
+        $branches = Branch::where('is_active', true)->get();
+        $statuses = ['pending', 'dispatched', 'partial', 'completed', 'cancelled'];
+
+        return view('reports.consignments', compact(
+            'consignments', 'summary', 'byStatus', 'topDebtors',
+            'branches', 'statuses', 'isSuperAdmin'
+        ));
+    }
+
+    public function exportConsignments(Request $request)
+    {
+        $this->authorize('export reports');
+        return Excel::download(
+            new ConsignmentExport($request->only(['branch_id', 'status', 'date_from', 'date_to'])),
+            'consignment-report-' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 }

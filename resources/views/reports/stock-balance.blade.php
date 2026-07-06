@@ -294,7 +294,7 @@
 
                         <td class="px-5 py-3 text-right font-bold
                            {{ $isOut ? 'text-red-600' : ($isLow ? 'text-amber-600' : 'text-gray-800') }}">
-                            {{ number_format($item->quantity, 2) }}
+                            {{ number_format($item->quantity, 0) }}
                         </td>
 
                         <td class="px-5 py-3 text-gray-500 text-xs">

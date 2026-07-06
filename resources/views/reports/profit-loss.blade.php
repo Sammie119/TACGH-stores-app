@@ -436,7 +436,7 @@
                             {{ $product->product?->name }}
                         </td>
                         <td class="px-5 py-3 text-right text-gray-600">
-                            {{ number_format($product->total_qty, 2) }}
+                            {{ number_format($product->total_qty, 0) }}
                         </td>
                         <td class="px-5 py-3 text-right font-semibold text-gray-800">
                             GHS {{ number_format($product->total_revenue, 2) }}

@@ -65,6 +65,13 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // Stock takes
             'view stock takes', 'create stock takes', 'approve stock takes',
+
+            // Consignments
+            'view consignments', 'view all branch consignments', 'create consignments',
+            'dispatch consignments', 'cancel consignments', 'record consignment payment',
+
+            // Cashier accounts
+            'view cashier accounts',
         ];
 
         foreach ($permissions as $permission) {
@@ -90,6 +97,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'view deposits', 'create deposits',
             'view reports', 'export reports',
             'view dashboard',
+            'view consignments', 'create consignments', 'dispatch consignments',
+            'cancel consignments', 'record consignment payment',
+            'view cashier accounts',
         ]);
 
         // --- GENERAL MANAGER ---
@@ -143,6 +153,11 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // Stock takes
             'view stock takes', 'create stock takes', 'approve stock takes',
+
+            // Consignments
+            'view consignments', 'view all branch consignments', 'create consignments',
+            'dispatch consignments', 'cancel consignments', 'record consignment payment',
+            'view cashier accounts',
         ]);
 
         // --- STORE MANAGER ---
@@ -160,6 +175,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view purchase orders', 'create purchase orders', 'edit purchase orders',
             'receive purchase orders',
             'view supplier payments', 'create supplier payments',
+            'view consignments', 'create consignments', 'dispatch consignments', 'record consignment payment',
+            'view cashier accounts',
         ]);
 
         // --- SALES OFFICER / CASHIER ---
@@ -170,6 +187,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view sales', 'create sales',
             'view returns', 'create returns',
             'view dashboard',
+            'view consignments', 'record consignment payment',
         ]);
 
         // --- STOCK OFFICER ---
@@ -179,6 +197,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view stock', 'adjust stock', 'view stock movements',
             'view transfers', 'create transfers', 'receive transfers',
             'view dashboard',
+            'view consignments',
         ]);
 
         // --- AUDITOR ---
@@ -194,6 +213,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view reports', 'export reports',
             'view audit logs',
             'view dashboard',
+            'view consignments', 'view all branch consignments',
+            'view cashier accounts',
         ]);
 
         // --- ACCOUNTANT ---
@@ -206,6 +227,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view dashboard', 'view suppliers',
             'view purchase orders', 'approve purchase orders',
             'view supplier payments', 'create supplier payments',
+            'view consignments', 'view all branch consignments',
+            'view cashier accounts',
         ]);
     }
 }

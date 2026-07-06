@@ -63,13 +63,22 @@ class PosController extends Controller
             'items.*.quantity'   => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.subtotal'   => 'required|numeric|min:0',
-            'payment_method'     => 'required|in:cash,momo,bank,credit,split',
+            'payment_method'     => 'required|in:cash,momo,bank,pos,split',
             'amount_paid'        => 'required|numeric|min:0',
             'customer_id'        => 'nullable|exists:customers,id',
             'walkin_name'        => 'nullable|string|max:100',
             'discount'           => 'nullable|numeric|min:0',
             'notes'              => 'nullable|string|max:500',
         ]);
+
+        if ($request->payment_method === 'split') {
+            $request->validate([
+                'split_method_1' => 'required|in:cash,momo,bank,pos',
+                'split_amount_1' => 'required|numeric|min:0.01',
+                'split_method_2' => 'required|in:cash,momo,bank,pos',
+                'split_amount_2' => 'required|numeric|min:0.01',
+            ]);
+        }
 
         $user          = auth()->user();
         $financialYear = FinancialYear::getActive();
@@ -138,6 +147,10 @@ class PosController extends Controller
                 'amount_paid'       => $amountPaid,
                 'balance_due'       => $balanceDue,
                 'payment_method'    => $request->payment_method,
+                'split_method_1'    => $request->payment_method === 'split' ? $request->split_method_1 : null,
+                'split_amount_1'    => $request->payment_method === 'split' ? $request->split_amount_1 : null,
+                'split_method_2'    => $request->payment_method === 'split' ? $request->split_method_2 : null,
+                'split_amount_2'    => $request->payment_method === 'split' ? $request->split_amount_2 : null,
                 'status'            => $status,
                 'notes'             => $request->notes,
             ]);

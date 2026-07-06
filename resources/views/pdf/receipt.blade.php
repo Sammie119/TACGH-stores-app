@@ -8,10 +8,9 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: Arial, sans-serif;
-            font-size: 11px;
+            font-size: 13px;
             color: #111;
-            width: 80mm;
-            padding: 8mm 6mm 12mm 6mm;
+            padding: 15mm 20mm;
         }
 
         .center { text-align: center; }
@@ -31,14 +30,14 @@
         }
 
         .store-name {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
             color: #111;
             margin-bottom: 2px;
         }
 
         .store-meta {
-            font-size: 10px;
+            font-size: 12px;
             color: #666;
             margin-top: 2px;
         }
@@ -53,20 +52,20 @@
         }
 
         .invoice-banner p {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: bold;
             letter-spacing: .08em;
         }
 
         .invoice-banner small {
-            font-size: 9px;
+            font-size: 11px;
             color: #93c5fd;
         }
 
         .meta-row {
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
+            font-size: 12px;
             margin-bottom: 3px;
             color: #555;
         }
@@ -83,7 +82,7 @@
         }
 
         th {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: bold;
             padding: 4px 0;
             color: #111;
@@ -94,7 +93,7 @@
         }
 
         td {
-            font-size: 10px;
+            font-size: 12px;
             padding: 4px 0;
             vertical-align: top;
             word-wrap: break-word;
@@ -109,13 +108,13 @@
         .total-row {
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
+            font-size: 12px;
             margin-bottom: 4px;
             color: #555;
         }
 
         .total-row.grand {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
             color: #111;
             margin: 6px 0;
@@ -124,25 +123,25 @@
         }
 
         .total-row.paid {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
             color: #16a34a;
         }
 
         .total-row.change {
-            font-size: 11px;
+            font-size: 13px;
             color: #2563eb;
         }
 
         .total-row.balance {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
             color: #dc2626;
         }
 
         .footer {
             text-align: center;
-            font-size: 10px;
+            font-size: 12px;
             color: #666;
             margin-top: 14px;
             border-top: 1px dashed #999;
@@ -150,7 +149,7 @@
         }
 
         .footer .thank-you {
-            font-size: 12px;
+            font-size: 15px;
             font-weight: bold;
             color: #1e3a5f;
             margin-bottom: 4px;
@@ -163,7 +162,7 @@
 <div class="header">
     @if($logoBase64)
         <img src="{{ $logoBase64 }}"
-             style="max-height:64px;max-width:160px;object-fit:contain;
+             style="max-height:80px;max-width:200px;object-fit:contain;
                 margin-bottom:8px;display:block;
                 margin-left:auto;margin-right:auto">
     @endif
@@ -217,7 +216,7 @@
 
 <div class="meta-row">
     <span>Payment</span>
-    <span>{{ strtoupper($sale->payment_method) }}</span>
+    <span>{{ $sale->payment_method === 'split' ? 'SPLIT' : strtoupper($sale->payment_method) }}</span>
 </div>
 
 <div class="divider"></div>
@@ -237,7 +236,7 @@
         <tr>
             <td>{{ $item->product?->name }}</td>
             <td style="text-align:center">
-                {{ number_format($item->quantity, 2) }}
+                {{ number_format($item->quantity, 0) }}
             </td>
             <td style="text-align:right">
                 {{ number_format($item->unit_price, 2) }}
@@ -270,10 +269,21 @@
         <span>GHS {{ number_format($sale->total_amount, 2) }}</span>
     </div>
 
-    <div class="total-row paid">
-        <span>Amount paid ({{ strtoupper($sale->payment_method) }})</span>
-        <span>GHS {{ number_format($sale->amount_paid, 2) }}</span>
-    </div>
+    @if($sale->payment_method === 'split')
+        <div class="total-row paid">
+            <span>Paid ({{ strtoupper($sale->split_method_1) }})</span>
+            <span>GHS {{ number_format($sale->split_amount_1, 2) }}</span>
+        </div>
+        <div class="total-row paid">
+            <span>Paid ({{ strtoupper($sale->split_method_2) }})</span>
+            <span>GHS {{ number_format($sale->split_amount_2, 2) }}</span>
+        </div>
+    @else
+        <div class="total-row paid">
+            <span>Amount paid ({{ strtoupper($sale->payment_method) }})</span>
+            <span>GHS {{ number_format($sale->amount_paid, 2) }}</span>
+        </div>
+    @endif
 
     @if($sale->balance_due > 0)
         <div class="total-row balance">

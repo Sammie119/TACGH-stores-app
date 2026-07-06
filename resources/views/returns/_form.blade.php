@@ -124,7 +124,7 @@
                                         <option value="{{ $item->product_id }}"
                                             {{ old('product_id') == $item->product_id ? 'selected' : '' }}>
                                             {{ $item->product?->name }}
-                                            — sold {{ number_format($item->quantity, 2) }}
+                                            — sold {{ number_format($item->quantity, 0) }}
                                             × GHS {{ number_format($item->unit_price, 2) }}
                                         </option>
                                     @endforeach

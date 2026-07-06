@@ -163,7 +163,7 @@
                     </td>
 
                     <td class="px-5 py-3 text-gray-700">
-                        {{ $product->total_quantity ?? 0 }}
+                        {{ number_format($product->total_quantity ?? 0, 0) }}
                     </td>
 
                     <td class="px-5 py-3 text-gray-700">

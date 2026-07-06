@@ -71,10 +71,10 @@
                 <td>{{ $i + 1 }}</td>
                 <td class="font-bold">{{ $item->product?->name }}</td>
                 <td class="monospace text-sm">{{ $item->product?->sku }}</td>
-                <td class="text-right">{{ number_format($item->quantity_ordered, 2) }}</td>
+                <td class="text-right">{{ number_format($item->quantity_ordered, 0) }}</td>
                 <td class="text-right">
                     @if($item->quantity_received > 0)
-                        {{ number_format($item->quantity_received, 2) }}
+                        {{ number_format($item->quantity_received, 0) }}
                     @else
                         <span class="text-gray">—</span>
                     @endif

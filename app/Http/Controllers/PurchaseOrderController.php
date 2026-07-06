@@ -20,6 +20,8 @@ class PurchaseOrderController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('view purchase orders');
+
         $user         = auth()->user();
         $isSuperAdmin = $this->canViewAllBranches();
 
@@ -71,6 +73,8 @@ class PurchaseOrderController extends Controller
 
     public function create()
     {
+        $this->authorize('create purchase orders');
+
         $user      = auth()->user();
         $suppliers = Supplier::where('is_active', true)->get();
         $products  = Product::where('is_active', true)->get();
@@ -85,6 +89,8 @@ class PurchaseOrderController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create purchase orders');
+
         $request->validate([
             'supplier_id'           => 'required|exists:suppliers,id',
             'branch_id'             => 'required|exists:branches,id',
@@ -141,6 +147,8 @@ class PurchaseOrderController extends Controller
 
     public function show(PurchaseOrder $purchaseOrder)
     {
+        $this->authorize('view purchase orders');
+
         $purchaseOrder->load([
             'supplier', 'branch', 'createdBy',
             'approvedBy', 'items.product', 'payments.paidBy'
@@ -151,6 +159,8 @@ class PurchaseOrderController extends Controller
 
     public function edit(PurchaseOrder $purchaseOrder)
     {
+        $this->authorize('edit purchase orders');
+
         if (!in_array($purchaseOrder->status, ['draft', 'pending'])) {
             return redirect()->route('purchase-orders.show', $purchaseOrder)
                 ->with('error', 'Only draft or pending orders can be edited.');
@@ -170,6 +180,8 @@ class PurchaseOrderController extends Controller
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
+        $this->authorize('edit purchase orders');
+
         if (!in_array($purchaseOrder->status, ['draft', 'pending'])) {
             return back()->with('error', 'Only draft or pending orders can be edited.');
         }
@@ -222,6 +234,8 @@ class PurchaseOrderController extends Controller
 
     public function approve(PurchaseOrder $purchaseOrder)
     {
+        $this->authorize('approve purchase orders');
+
         if ($purchaseOrder->status !== 'pending') {
             return back()->with('error', 'Only pending orders can be approved.');
         }
@@ -241,6 +255,8 @@ class PurchaseOrderController extends Controller
 
     public function markOrdered(PurchaseOrder $purchaseOrder)
     {
+        $this->authorize('create purchase orders');
+
         if ($purchaseOrder->status !== 'approved') {
             return back()->with('error', 'Only approved orders can be marked as ordered.');
         }
@@ -252,6 +268,8 @@ class PurchaseOrderController extends Controller
 
     public function receive(Request $request, PurchaseOrder $purchaseOrder)
     {
+        $this->authorize('receive purchase orders');
+
         if (!in_array($purchaseOrder->status, ['approved', 'ordered', 'partial'])) {
             return back()->with('error', 'This order cannot be received.');
         }
@@ -329,6 +347,8 @@ class PurchaseOrderController extends Controller
 
     public function cancel(PurchaseOrder $purchaseOrder)
     {
+        $this->authorize('edit purchase orders');
+
         if (in_array($purchaseOrder->status, ['received', 'cancelled'])) {
             return back()->with('error', 'This order cannot be cancelled.');
         }
@@ -340,6 +360,8 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
+        $this->authorize('edit purchase orders');
+
         if (!in_array($purchaseOrder->status, ['draft', 'cancelled'])) {
             return back()->with('error', 'Only draft or cancelled orders can be deleted.');
         }
@@ -348,6 +370,8 @@ class PurchaseOrderController extends Controller
 
     public function restore($id)
     {
+        $this->authorize('edit purchase orders');
+
         $po = PurchaseOrder::onlyTrashed()->findOrFail($id);
         return $this->restoreModel($po, 'purchase-orders.index');
     }

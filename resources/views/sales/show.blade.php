@@ -17,7 +17,7 @@
                 </p>
                 <dl class="space-y-3 text-sm">
                     <div style="display:flex;justify-content:space-between;gap:8px">
-                        <dt class="text-gray-500">Invoice</dt>
+                        <dt class="text-gray-500">Receipt</dt>
                         <dd class="font-mono font-semibold text-gray-800">{{ $sale->invoice_no }}</dd>
                     </div>
                     <div style="display:flex;justify-content:space-between;gap:8px">
@@ -158,7 +158,7 @@
                 <p class="font-semibold text-gray-700">Items sold</p>
                 <p class="text-xs text-gray-400 mt-0.5">
                     {{ $sale->items->count() }} {{ Str::plural('item', $sale->items->count()) }}
-                    · {{ number_format($sale->items->sum('quantity'), 2) }} total units
+                    · {{ number_format($sale->items->sum('quantity'), 0) }} total units
                 </p>
             </div>
             <table class="w-full text-sm" style="border-collapse:collapse">
@@ -189,7 +189,7 @@
                             <p class="text-xs text-gray-400 font-mono">{{ $item->product?->sku }}</p>
                         </td>
                         <td class="px-5 py-3 text-right text-gray-700">
-                            {{ number_format($item->quantity, 2) }}
+                            {{ number_format($item->quantity, 0) }}
                             <span class="text-xs text-gray-400">{{ $item->product?->unit }}</span>
                         </td>
                         <td class="px-5 py-3 text-right text-gray-700">

@@ -1,0 +1,5 @@
+# Seed Permissions
+php artisan db:seed --class=RolesAndPermissionsSeeder
+
+# Migration
+php artisan migrate

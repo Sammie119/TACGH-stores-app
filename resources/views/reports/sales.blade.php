@@ -54,10 +54,26 @@
                            text-sm text-gray-700 focus:outline-none
                            focus:ring-2 focus:ring-blue-500">
                     <option value="">All methods</option>
-                    @foreach(['cash','momo','bank','credit','split'] as $m)
+                    @foreach(['cash','momo','bank','pos','split'] as $m)
                         <option value="{{ $m }}"
                             {{ request('payment_method') === $m ? 'selected' : '' }}>
                             {{ ucfirst($m) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Cashier</label>
+                <select name="user_id"
+                        class="h-9 px-3 rounded-lg border border-gray-300 bg-white
+                           text-sm text-gray-700 focus:outline-none
+                           focus:ring-2 focus:ring-blue-500">
+                    <option value="">All cashiers</option>
+                    @foreach($cashiers as $cashier)
+                        <option value="{{ $cashier->id }}"
+                            {{ request('user_id') == $cashier->id ? 'selected' : '' }}>
+                            {{ $cashier->name }}
                         </option>
                     @endforeach
                 </select>
@@ -85,7 +101,7 @@
                 Apply
             </button>
 
-            @if(request()->hasAny(['branch_id','status','payment_method','date_from','date_to']))
+            @if(request()->hasAny(['branch_id','status','payment_method','user_id','date_from','date_to']))
                 <a href="{{ route('reports.sales') }}"
                    class="h-9 px-4 bg-white border border-gray-300 hover:bg-gray-50
                   text-gray-600 text-sm font-medium rounded-lg transition-colors"
@@ -199,7 +215,7 @@
                                 {{ $item->product?->name }}
                             </p>
                             <p class="text-xs text-gray-400">
-                                {{ number_format($item->total_qty, 2) }} units
+                                {{ number_format($item->total_qty, 0) }} units
                             </p>
                         </div>
                         <p class="text-sm font-semibold text-gray-800 flex-shrink-0">

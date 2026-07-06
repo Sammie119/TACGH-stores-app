@@ -164,7 +164,7 @@ class InventoryController extends Controller
         return redirect()->route('inventory.index')
             ->with('success',
                 ucfirst($request->type) . " successful. {$product->name}: " .
-                number_format($before, 2) . " → " . number_format($stock->quantity, 2) .
+                number_format($before, 0) . " → " . number_format($stock->quantity, 0) .
                 " {$product->unit}"
             );
     }

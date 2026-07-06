@@ -189,7 +189,7 @@
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;
                             gap:6px;margin-bottom:20px">
                     @foreach(['cash' => 'Cash', 'momo' => 'MoMo', 'bank' => 'Bank',
-                              'credit' => 'Credit', 'split' => 'Split'] as $val => $label)
+                              'pos' => 'POS', 'split' => 'Split'] as $val => $label)
                         <div id="pm-{{ $val }}"
                              onclick="selectPayment('{{ $val }}')"
                              style="padding:9px 4px;border:1px solid
@@ -204,6 +204,57 @@
                         </span>
                         </div>
                     @endforeach
+                </div>
+
+                {{-- Split payment detail (shown only when Split is selected) --}}
+                <div id="split-section" style="display:none;margin-bottom:16px;
+                     background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px">
+                    <p style="font-size:11px;font-weight:600;color:#92400e;
+                               text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">
+                        Split payment breakdown
+                    </p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                        <div>
+                            <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Method 1</label>
+                            <select id="split-method-1" onchange="updateSplitDefaults()"
+                                    style="width:100%;height:36px;padding:0 8px;border:1px solid #d1d5db;
+                                           border-radius:7px;font-size:13px;color:#111827;background:#fff">
+                                <option value="cash">Cash</option>
+                                <option value="momo">Mobile Money</option>
+                                <option value="bank">Bank Transfer</option>
+                                <option value="pos">POS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Amount 1 (GHS)</label>
+                            <input type="number" id="split-amount-1" value="0" min="0" step="0.01"
+                                   oninput="updateSplitTotals()"
+                                   style="width:100%;height:36px;padding:0 8px;border:1px solid #d1d5db;
+                                          border-radius:7px;font-size:14px;font-weight:600;text-align:right;
+                                          color:#111827;box-sizing:border-box">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <div>
+                            <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Method 2</label>
+                            <select id="split-method-2"
+                                    style="width:100%;height:36px;padding:0 8px;border:1px solid #d1d5db;
+                                           border-radius:7px;font-size:13px;color:#111827;background:#fff">
+                                <option value="momo">Mobile Money</option>
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank Transfer</option>
+                                <option value="pos">POS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Amount 2 (GHS)</label>
+                            <input type="number" id="split-amount-2" value="0" min="0" step="0.01"
+                                   oninput="updateSplitTotals()"
+                                   style="width:100%;height:36px;padding:0 8px;border:1px solid #d1d5db;
+                                          border-radius:7px;font-size:14px;font-weight:600;text-align:right;
+                                          color:#111827;background:#fff;box-sizing:border-box">
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Totals box --}}
@@ -371,12 +422,16 @@
     <form id="sale-form" method="POST"
           action="{{ route('pos.process') }}" style="display:none">
         @csrf
-        <input type="hidden" name="payment_method" id="form-payment">
-        <input type="hidden" name="amount_paid"    id="form-paid">
-        <input type="hidden" name="customer_id"    id="form-customer">
-        <input type="hidden" name="walkin_name"    id="form-walkin">
-        <input type="hidden" name="discount"       id="form-discount">
-        <input type="hidden" name="notes"          id="form-notes">
+        <input type="hidden" name="payment_method"  id="form-payment">
+        <input type="hidden" name="amount_paid"     id="form-paid">
+        <input type="hidden" name="customer_id"     id="form-customer">
+        <input type="hidden" name="walkin_name"     id="form-walkin">
+        <input type="hidden" name="discount"        id="form-discount">
+        <input type="hidden" name="notes"           id="form-notes">
+        <input type="hidden" name="split_method_1"  id="form-split-method-1">
+        <input type="hidden" name="split_amount_1"  id="form-split-amount-1">
+        <input type="hidden" name="split_method_2"  id="form-split-method-2">
+        <input type="hidden" name="split_amount_2"  id="form-split-amount-2">
         <div id="form-items"></div>
     </form>
 
@@ -428,7 +483,7 @@
                         <p style="font-size:11px;color:#9ca3af">
                             ${p.sku} · ${p.category ?? ''}
                             · <span style="color:${p.stock <= 0 ? '#ef4444' : p.stock <= 5 ? '#f59e0b' : '#6b7280'}">
-                                ${p.stock} ${p.unit} in stock
+                                ${Math.round(p.stock)} ${p.unit} in stock
                             </span>
                         </p>
                     </div>
@@ -502,7 +557,7 @@
                 const existing = cart.find(i => i.id === id);
                 if (existing) {
                     if (existing.qty + 1 > product.stock) {
-                        alert(`Only ${product.stock} ${product.unit} available.`);
+                        alert(`Only ${Math.round(product.stock)} ${product.unit} available.`);
                         return;
                     }
                     existing.qty += 1;
@@ -512,7 +567,7 @@
                         name    : product.name,
                         price   : parseFloat(product.selling_price),
                         unit    : product.unit,
-                        stock   : parseFloat(product.stock),
+                        stock   : parseInt(product.stock),
                         qty     : 1,
                         discount: 0,
                     });
@@ -536,7 +591,7 @@
                     return;
                 }
                 if (qty > item.stock) {
-                    alert(`Only ${item.stock} ${item.unit} available.`);
+                    alert(`Only ${Math.round(item.stock)} ${item.unit} available.`);
                     const input = document.querySelector(`input[data-qty="${id}"]`);
                     if (input) input.value = item.qty;
                     return;
@@ -649,8 +704,11 @@
                     `GHS ${subtotal.toFixed(2)}`;
                 document.getElementById('total-display').textContent =
                     `GHS ${total.toFixed(2)}`;
-                document.getElementById('amount-paid').value =
-                    total.toFixed(2);
+                if (selectedPayment === 'split') {
+                    updateSplitTotals();
+                } else {
+                    document.getElementById('amount-paid').value = total.toFixed(2);
+                }
                 document.getElementById('process-btn').textContent =
                     `Process sale — GHS ${total.toFixed(2)}`;
 
@@ -679,7 +737,7 @@
             // ── Payment method ────────────────────────────────────────────
             function selectPayment(method) {
                 selectedPayment = method;
-                ['cash','momo','bank','credit','split'].forEach(m => {
+                ['cash','momo','bank','pos','split'].forEach(m => {
                     const el   = document.getElementById(`pm-${m}`);
                     const span = document.getElementById(`pm-label-${m}`);
                     if (!el) return;
@@ -687,6 +745,41 @@
                     el.style.background  = m === method ? '#eff6ff' : '#fff';
                     span.style.color     = m === method ? '#2563eb' : '#374151';
                 });
+
+                const splitSection = document.getElementById('split-section');
+                const amountPaid   = document.getElementById('amount-paid');
+                if (method === 'split') {
+                    splitSection.style.display = 'block';
+                    amountPaid.readOnly        = true;
+                    amountPaid.style.background = '#f9fafb';
+                    amountPaid.style.color      = '#6b7280';
+                    const total = parseFloat(document.getElementById('total-display').textContent.replace('GHS ','')) || 0;
+                    document.getElementById('split-amount-1').value = total.toFixed(2);
+                    document.getElementById('split-amount-2').value = '0.00';
+                    updateSplitTotals();
+                } else {
+                    splitSection.style.display  = 'none';
+                    amountPaid.readOnly         = false;
+                    amountPaid.style.background = '';
+                    amountPaid.style.color      = '#111827';
+                }
+            }
+
+            function updateSplitDefaults() {
+                const m1 = document.getElementById('split-method-1').value;
+                const m2Select = document.getElementById('split-method-2');
+                // Auto-switch method 2 if same as method 1
+                if (m2Select.value === m1) {
+                    const alternatives = ['cash','momo','bank','pos'].filter(m => m !== m1);
+                    m2Select.value = alternatives[0];
+                }
+            }
+
+            function updateSplitTotals() {
+                const a1 = parseFloat(document.getElementById('split-amount-1').value) || 0;
+                const a2 = parseFloat(document.getElementById('split-amount-2').value) || 0;
+                document.getElementById('amount-paid').value = (a1 + a2).toFixed(2);
+                updateChange();
             }
 
             // ── Process sale ──────────────────────────────────────────────
@@ -711,9 +804,34 @@
                 const walkinName      =
                     document.getElementById('walkin-name-input')?.value?.trim() || '';
 
+                // Validate and collect split payment fields
+                if (selectedPayment === 'split') {
+                    const m1 = document.getElementById('split-method-1').value;
+                    const a1 = parseFloat(document.getElementById('split-amount-1').value) || 0;
+                    const m2 = document.getElementById('split-method-2').value;
+                    const a2 = parseFloat(document.getElementById('split-amount-2').value) || 0;
+
+                    if (a1 <= 0) {
+                        alert('Please enter an amount for the first payment method.');
+                        return;
+                    }
+                    if (m1 === m2) {
+                        alert('Please select two different payment methods for the split payment.');
+                        return;
+                    }
+
+                    document.getElementById('form-split-method-1').value = m1;
+                    document.getElementById('form-split-amount-1').value = a1.toFixed(2);
+                    document.getElementById('form-split-method-2').value = m2;
+                    document.getElementById('form-split-amount-2').value = a2.toFixed(2);
+                    document.getElementById('form-paid').value           = (a1 + a2).toFixed(2);
+                }
+
                 // Populate hidden form fields
                 document.getElementById('form-payment').value  = selectedPayment;
-                document.getElementById('form-paid').value     = amountPaid;
+                if (selectedPayment !== 'split') {
+                    document.getElementById('form-paid').value = amountPaid;
+                }
                 document.getElementById('form-customer').value = customerId;
                 document.getElementById('form-walkin').value   = walkinName;
                 document.getElementById('form-discount').value = overallDiscount;

@@ -237,12 +237,12 @@
                     {{ $item->product?->name }}
                     <br>
                     <span style="font-size:9px">
-                    {{ number_format($item->unit_price, 2) }} x {{ number_format($item->quantity, 2) }}
+                    {{ number_format($item->unit_price, 2) }} x {{ number_format($item->quantity, 0) }}
                 </span>
                 </td>
                 <td style="text-align:center;color:#9ca3af;
                        text-decoration:line-through">
-                    {{ number_format($item->quantity, 2) }}
+                    {{ number_format($item->quantity, 0) }}
                 </td>
                 <td style="text-align:right;color:#9ca3af;
                        text-decoration:line-through">
@@ -256,7 +256,7 @@
                     (Returned)
                 </td>
                 <td style="text-align:center;font-weight:bold;color:#dc2626">
-                    {{ number_format($return->quantity, 2) }}
+                    {{ number_format($return->quantity, 0) }}
                 </td>
                 <td style="text-align:right;font-weight:bold;color:#dc2626">
                     -{{ number_format($return->refund_amount, 2) }}
@@ -270,11 +270,11 @@
                     {{ $item->product?->name }}
                     <br>
                     <span style="font-size:9px;color:#9ca3af">
-                    {{ number_format($item->unit_price, 2) }} x {{ number_format($item->quantity, 2) }}
+                    {{ number_format($item->unit_price, 2) }} x {{ number_format($item->quantity, 0) }}
                 </span>
                 </td>
                 <td style="text-align:center">
-                    {{ number_format($item->quantity, 2) }}
+                    {{ number_format($item->quantity, 0) }}
                 </td>
                 <td style="text-align:right">
                     {{ number_format($item->subtotal, 2) }}

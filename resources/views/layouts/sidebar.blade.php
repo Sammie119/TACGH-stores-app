@@ -106,7 +106,7 @@
     {{-- Sales collapsible --}}
     @can('view sales')
         @php
-            $salesOpen = request()->routeIs('sales.*') || request()->routeIs('pos.*');
+            $salesOpen = request()->routeIs('sales.*') || request()->routeIs('pos.*') || request()->routeIs('consignments.*');
         @endphp
         <div x-data="{ open: {{ $salesOpen ? 'true' : 'false' }} }">
             <button @click="open = !open"
@@ -131,6 +131,12 @@
                    class="snav-sub {{ request()->routeIs('sales.*') ? 'active' : '' }}">
                     Sales history
                 </a>
+                @can('view consignments')
+                    <a href="{{ route('consignments.index') }}"
+                       class="snav-sub {{ request()->routeIs('consignments.*') ? 'active' : '' }}">
+                        Consignments
+                    </a>
+                @endcan
             </div>
         </div>
     @endcan
@@ -182,6 +188,19 @@
                       d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
             </svg>
             Banking
+        </a>
+    @endcan
+
+    {{-- Cashier Accounts --}}
+    @can('view cashier accounts')
+        <a href="{{ route('cashier-accounts.index') }}"
+           class="snav {{ request()->routeIs('cashier-accounts.*') ? 'active' : '' }}">
+            <svg style="width:18px;height:18px;flex-shrink:0" fill="none"
+                 stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+            Cashier Accounts
         </a>
     @endcan
 

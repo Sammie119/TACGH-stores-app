@@ -51,7 +51,7 @@
             {{-- Invoice info --}}
             <div style="padding:16px 24px;border-bottom:1px dashed #e5e7eb">
                 <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                    <span style="font-size:12px;color:#6b7280">Invoice</span>
+                    <span style="font-size:12px;color:#6b7280">Receipt</span>
                     <span style="font-size:12px;font-weight:600;font-family:monospace;
                              color:#111827">{{ $sale->invoice_no }}</span>
                 </div>
@@ -112,7 +112,7 @@
                             </td>
                             <td style="font-size:12px;color:#374151;text-align:center;
                                    padding:6px 0">
-                                {{ number_format($item->quantity, 2) }}
+                                {{ number_format($item->quantity, 0) }}
                             </td>
                             <td style="font-size:12px;color:#374151;text-align:right;
                                    padding:6px 0">
@@ -151,14 +151,21 @@
                     GHS {{ number_format($sale->total_amount, 2) }}
                 </span>
                 </div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                <span style="font-size:12px;color:#6b7280">
-                    Paid ({{ ucfirst($sale->payment_method) }})
-                </span>
-                    <span style="font-size:12px;color:#16a34a;font-weight:500">
-                    GHS {{ number_format($sale->amount_paid, 2) }}
-                </span>
-                </div>
+                @if($sale->payment_method === 'split')
+                    <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+                        <span style="font-size:12px;color:#6b7280">Paid ({{ ucfirst($sale->split_method_1) }})</span>
+                        <span style="font-size:12px;color:#16a34a;font-weight:500">GHS {{ number_format($sale->split_amount_1, 2) }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                        <span style="font-size:12px;color:#6b7280">Paid ({{ ucfirst($sale->split_method_2) }})</span>
+                        <span style="font-size:12px;color:#16a34a;font-weight:500">GHS {{ number_format($sale->split_amount_2, 2) }}</span>
+                    </div>
+                @else
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                        <span style="font-size:12px;color:#6b7280">Paid ({{ ucfirst($sale->payment_method) }})</span>
+                        <span style="font-size:12px;color:#16a34a;font-weight:500">GHS {{ number_format($sale->amount_paid, 2) }}</span>
+                    </div>
+                @endif
                 @if($sale->balance_due > 0)
                     <div style="display:flex;justify-content:space-between">
                         <span style="font-size:12px;color:#dc2626;font-weight:500">Balance due</span>
@@ -250,7 +257,7 @@
                     <div style="display:flex;justify-content:space-between">
                         <dt class="text-gray-500">Total units</dt>
                         <dd class="font-medium text-gray-800">
-                            {{ number_format($sale->items->sum('quantity'), 2) }}
+                            {{ number_format($sale->items->sum('quantity'), 0) }}
                         </dd>
                     </div>
                     <div style="display:flex;justify-content:space-between">
@@ -269,18 +276,22 @@
     @push('scripts')
         <style>
             @media print {
+                @page { size: A5 portrait; margin: 15mm 18mm; }
+
                 body * { visibility: hidden; }
                 #receipt-card, #receipt-card * { visibility: visible; }
                 #receipt-card {
                     position: absolute;
                     left: 0;
                     top: 0;
-                    width: 80mm;
+                    width: 100%;
                     border: none !important;
+                    border-radius: 0 !important;
                     box-shadow: none !important;
                 }
                 #receipt-card img {
-                    max-height: 50px !important;
+                    max-height: 80px !important;
+                    max-width: 200px !important;
                     object-fit: contain !important;
                 }
             }

@@ -46,7 +46,7 @@
                     <div style="display:flex;justify-content:space-between;gap:8px">
                         <dt class="text-gray-500">Quantity</dt>
                         <dd class="text-gray-700">
-                            {{ number_format($return->quantity, 2) }}
+                            {{ number_format($return->quantity, 0) }}
                             {{ $return->product?->unit }}
                         </dd>
                     </div>

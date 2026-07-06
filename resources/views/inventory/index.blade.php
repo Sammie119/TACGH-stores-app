@@ -187,7 +187,7 @@
 
                     <td class="px-5 py-3">
                     <span class="font-semibold {{ $isOut ? 'text-red-600' : ($isLow ? 'text-amber-600' : 'text-gray-800') }}">
-                        {{ number_format($item->quantity, 2) }}
+                        {{ number_format($item->quantity, 0) }}
                     </span>
                         <span class="text-xs text-gray-400 ml-1">{{ $item->product->unit }}</span>
                     </td>

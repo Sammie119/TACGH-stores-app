@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title')</title>
     <style>
+        @page {
+            margin: 15mm 12mm 20mm 12mm;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -13,6 +17,10 @@
             font-size: 11px;
             color: #1f2937;
             line-height: 1.5;
+            /* The universal `*` reset above zeroes body's margin, which then
+               wins over the @page rule in dompdf — so the page margin has to
+               be re-declared here (higher specificity) to actually apply. */
+            margin: 15mm 12mm 20mm 12mm;
         }
 
         /* Page header */
@@ -79,6 +87,11 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 16px;
+        }
+
+        thead th, tbody td, tfoot td {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         thead tr {

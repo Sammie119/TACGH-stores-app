@@ -111,9 +111,6 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-600 mb-1.5">
                                         Link to purchase order
-                                        <span class="text-xs text-gray-400 font-normal ml-1">
-                                (optional)
-                            </span>
                                     </label>
                                     <div class="relative">
                                         <select name="purchase_order_id"
@@ -121,7 +118,7 @@
                                                 class="w-full h-10 px-3 pr-8 rounded-lg border
                                            border-gray-300 bg-white text-sm text-gray-800
                                            focus:outline-none focus:ring-2
-                                           focus:ring-blue-500 appearance-none">
+                                           focus:ring-blue-500 appearance-none" required>
                                             <option value="">— General payment —</option>
                                             @foreach($openOrders as $po)
                                                 <option value="{{ $po->id }}"

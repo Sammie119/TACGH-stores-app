@@ -27,6 +27,9 @@ class SalesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
         if (!empty($this->filters['date_to'])) {
             $query->whereDate('created_at', '<=', $this->filters['date_to']);
         }
+        if (!empty($this->filters['user_id'])) {
+            $query->where('user_id', $this->filters['user_id']);
+        }
 
         return $query->latest();
     }

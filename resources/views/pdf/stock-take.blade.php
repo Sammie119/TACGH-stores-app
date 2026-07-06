@@ -33,7 +33,7 @@
                 <span class="text-gray">Net variance:</span>
                 @php $netVariance = $stockTake->items->whereNotNull('variance')->sum('variance'); @endphp
                 <strong class="{{ $netVariance >= 0 ? 'text-green' : 'text-red' }}">
-                    {{ $netVariance >= 0 ? '+' : '' }}{{ number_format($netVariance, 2) }}
+                    {{ $netVariance >= 0 ? '+' : '' }}{{ number_format($netVariance, 0) }}
                 </strong>
             </div>
         </div>
@@ -75,18 +75,18 @@
                 <td class="font-bold">{{ $item->product?->name }}</td>
                 <td class="monospace text-sm">{{ $item->product?->sku }}</td>
                 <td>{{ $item->product?->category?->name ?? '—' }}</td>
-                <td class="text-right">{{ number_format($item->system_quantity, 2) }}</td>
+                <td class="text-right">{{ number_format($item->system_quantity, 0) }}</td>
                 <td class="text-right font-bold">
                     {{ $item->counted_quantity !== null
-                        ? number_format($item->counted_quantity, 2)
+                        ? number_format($item->counted_quantity, 0)
                         : '—' }}
                 </td>
                 <td class="text-right font-bold
                         {{ $v > 0 ? 'text-green' : ($v < 0 ? 'text-red' : 'text-gray') }}">
                     @if($v === null)—
-                    @elseif($v > 0)+{{ number_format($v, 2) }}
-                    @elseif($v < 0){{ number_format($v, 2) }}
-                    @else 0.00
+                    @elseif($v > 0)+{{ number_format($v, 0) }}
+                    @elseif($v < 0){{ number_format($v, 0) }}
+                    @else 0
                     @endif
                 </td>
                 <td class="text-gray">{{ $item->notes ?? '—' }}</td>

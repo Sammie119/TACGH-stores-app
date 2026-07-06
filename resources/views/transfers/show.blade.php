@@ -252,7 +252,7 @@
                                 </p>
                             </td>
                             <td class="px-5 py-3 text-gray-700">
-                                {{ number_format($item->quantity_requested, 2) }}
+                                {{ number_format($item->quantity_requested, 0) }}
                                 <span class="text-xs text-gray-400 ml-1">
                                 {{ $item->product?->unit }}
                             </span>
@@ -263,13 +263,13 @@
                                         $short = $item->quantity_received < $item->quantity_requested;
                                     @endphp
                                     <span class="font-medium {{ $short ? 'text-amber-600' : 'text-green-600' }}">
-                                    {{ number_format($item->quantity_received, 2) }}
+                                    {{ number_format($item->quantity_received, 0) }}
                                 </span>
                                     <span class="text-xs text-gray-400 ml-1">
                                     {{ $item->product?->unit }}
                                 </span>
                                     @if($short)
-                                        <p class="text-xs text-amber-500">Short by {{ number_format($item->quantity_requested - $item->quantity_received, 2) }}</p>
+                                        <p class="text-xs text-amber-500">Short by {{ number_format($item->quantity_requested - $item->quantity_received, 0) }}</p>
                                     @endif
                                 @else
                                     <span class="text-gray-300 text-xs">Not yet received</span>
@@ -305,7 +305,7 @@
                                             </p>
                                             <p class="text-xs text-gray-400 mt-0.5">
                                                 Requested:
-                                                {{ number_format($item->quantity_requested, 2) }}
+                                                {{ number_format($item->quantity_requested, 0) }}
                                                 {{ $item->product?->unit }}
                                             </p>
                                         </div>

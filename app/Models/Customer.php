@@ -13,5 +13,6 @@ class Customer extends Model
 
     protected $casts = ['balance' => 'decimal:2'];
 
-    public function sales() { return $this->hasMany(Sale::class); }
+    public function sales()        { return $this->hasMany(Sale::class); }
+    public function consignments() { return $this->hasMany(Consignment::class); }
 }

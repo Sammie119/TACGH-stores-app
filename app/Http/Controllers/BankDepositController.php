@@ -15,6 +15,8 @@ class BankDepositController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('view deposits');
+
         $user         = auth()->user();
         $isSuperAdmin = $this->canViewAllBranches();
 
@@ -70,6 +72,8 @@ class BankDepositController extends Controller
 
     public function create()
     {
+        $this->authorize('create deposits');
+
         $user     = auth()->user();
         $branches = $this->canViewAllBranches()
             ? Branch::where('is_active', true)->get()
@@ -80,6 +84,8 @@ class BankDepositController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create deposits');
+
         $request->validate([
             'branch_id'    => 'required|exists:branches,id',
             'amount'       => 'required|numeric|min:0.01',
@@ -116,12 +122,16 @@ class BankDepositController extends Controller
 
     public function show(BankDeposit $deposit)
     {
+        $this->authorize('view deposits');
+
         $deposit->load(['branch', 'depositedBy', 'verifiedBy']);
         return view('deposits.show', compact('deposit'));
     }
 
     public function edit(BankDeposit $deposit)
     {
+        $this->authorize('create deposits');
+
         if ($deposit->status !== 'pending') {
             return redirect()->route('deposits.show', $deposit)
                 ->with('error', 'Only pending deposits can be edited.');
@@ -137,6 +147,8 @@ class BankDepositController extends Controller
 
     public function update(Request $request, BankDeposit $deposit)
     {
+        $this->authorize('create deposits');
+
         if ($deposit->status !== 'pending') {
             return back()->with('error', 'Only pending deposits can be edited.');
         }
@@ -173,6 +185,8 @@ class BankDepositController extends Controller
 
     public function verify(BankDeposit $deposit)
     {
+        $this->authorize('verify deposits');
+
         if ($deposit->status !== 'pending') {
             return back()->with('error', 'Only pending deposits can be verified.');
         }
@@ -192,6 +206,8 @@ class BankDepositController extends Controller
 
     public function reject(BankDeposit $deposit)
     {
+        $this->authorize('verify deposits');
+
         if ($deposit->status !== 'pending') {
             return back()->with('error', 'Only pending deposits can be rejected.');
         }
@@ -211,6 +227,8 @@ class BankDepositController extends Controller
 
     public function destroy(BankDeposit $deposit)
     {
+        $this->authorize('create deposits');
+
         if ($deposit->status !== 'pending') {
             return back()->with('error', 'Only pending deposits can be deleted.');
         }
@@ -219,12 +237,16 @@ class BankDepositController extends Controller
 
     public function restore($id)
     {
+        $this->authorize('create deposits');
+
         $deposit = BankDeposit::onlyTrashed()->findOrFail($id);
         return $this->restoreModel($deposit, 'deposits.index');
     }
 
     public function forceDelete($id)
     {
+        $this->authorize('create deposits');
+
         $deposit = BankDeposit::onlyTrashed()->findOrFail($id);
         if ($deposit->slip_image) {
             Storage::disk('public')->delete($deposit->slip_image);

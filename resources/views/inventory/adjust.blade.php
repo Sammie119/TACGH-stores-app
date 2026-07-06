@@ -295,7 +295,7 @@
                         <div style="text-align:right">
                             <p class="text-lg font-semibold
                               {{ $isOut ? 'text-red-600' : ($isLow ? 'text-amber-600' : 'text-gray-800') }}">
-                                {{ number_format($stock->quantity, 2) }}
+                                {{ number_format($stock->quantity, 0) }}
                                 <span class="text-xs font-normal text-gray-400">{{ $product->unit }}</span>
                             </p>
                             @if($isOut)

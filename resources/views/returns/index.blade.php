@@ -174,7 +174,7 @@
                     </td>
 
                     <td class="px-5 py-3 text-gray-700">
-                        {{ number_format($return->quantity, 2) }}
+                        {{ number_format($return->quantity, 0) }}
                         <span class="text-xs text-gray-400">
                         {{ $return->product?->unit }}
                     </span>

@@ -282,7 +282,7 @@
                                 </p>
                             </td>
                             <td class="px-5 py-3 text-right text-gray-700">
-                                {{ number_format($item->quantity_ordered, 2) }}
+                                {{ number_format($item->quantity_ordered, 0) }}
                                 <span class="text-xs text-gray-400">
                                 {{ $item->product?->unit }}
                             </span>
@@ -290,11 +290,11 @@
                             <td class="px-5 py-3 text-right">
                                 @if($item->quantity_received >= $item->quantity_ordered)
                                     <span class="font-medium text-green-600">
-                                    {{ number_format($item->quantity_received, 2) }}
+                                    {{ number_format($item->quantity_received, 0) }}
                                 </span>
                                 @elseif($item->quantity_received > 0)
                                     <span class="font-medium text-amber-600">
-                                    {{ number_format($item->quantity_received, 2) }}
+                                    {{ number_format($item->quantity_received, 0) }}
                                 </span>
                                 @else
                                     <span class="text-gray-400">—</span>
@@ -368,7 +368,7 @@
                                                 {{ $item->product?->name }}
                                             </td>
                                             <td class="px-4 py-3 text-right text-gray-600">
-                                                {{ number_format($item->quantity_ordered, 2) }}
+                                                {{ number_format($item->quantity_ordered, 0) }}
                                             </td>
                                             <td class="px-4 py-3 text-right">
                                                 <input type="number"

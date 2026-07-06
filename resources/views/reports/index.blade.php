@@ -174,6 +174,28 @@
                     </div>
                 </div>
             </a>
+            {{-- Consignment Report --}}
+            <a href="{{ route('reports.consignments') }}"
+               style="display:block;text-decoration:none"
+               class="bg-white border border-gray-200 rounded-xl p-6 hover:border-blue-300
+                      hover:shadow-sm transition-all">
+                <div style="display:flex;align-items:flex-start;gap:14px">
+                    <div style="width:44px;height:44px;border-radius:10px;background:#fff7ed;
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 mb-1">Consignment report</p>
+                        <p class="text-sm text-gray-500">
+                            Dispatched products, payment collections, outstanding balances
+                        </p>
+                    </div>
+                </div>
+            </a>
+
         @endcan
 
     </div>
