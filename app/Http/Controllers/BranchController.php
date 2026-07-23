@@ -129,9 +129,9 @@ class BranchController extends Controller
             'logo'       => 'nullable|image|max:2048',
         ]);
 
-        if (!auth()->user()->hasRole('super_admin|general_manager|branch_manager')) {
-            abort(403, 'Only super admins can create branches.');
-        }
+//        if (!auth()->user()->hasRole('super_admin|general_manager|branch_manager')) {
+//            abort(403, 'Only super admins can create branches.');
+//        }
 
         $validated['is_active'] = $request->has('is_active');
 
