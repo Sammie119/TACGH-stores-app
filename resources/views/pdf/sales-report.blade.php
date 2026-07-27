@@ -43,6 +43,18 @@
                 GHS {{ number_format($summary['balance_due'], 2) }}
             </div>
         </div>
+        <div class="info-box">
+            <div class="info-label">Total refunds</div>
+            <div class="info-value font-bold text-red">
+                GHS {{ number_format($summary['total_refunds'], 2) }}
+            </div>
+        </div>
+        <div class="info-box">
+            <div class="info-label">Net revenue</div>
+            <div class="info-value font-bold" style="font-size:14px">
+                GHS {{ number_format($summary['net_revenue'], 2) }}
+            </div>
+        </div>
     </div>
 
     {{-- Payment breakdown --}}
@@ -122,6 +134,11 @@
             <td colspan="{{ $isSuperAdmin ? 4 : 3 }}" class="text-right">Total</td>
             <td class="text-right">GHS {{ number_format($summary['total_revenue'], 2) }}</td>
             <td class="text-right">GHS {{ number_format($summary['total_discount'], 2) }}</td>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <td colspan="{{ $isSuperAdmin ? 4 : 3 }}" class="text-right">Net revenue (after refunds)</td>
+            <td class="text-right" colspan="2">GHS {{ number_format($summary['net_revenue'], 2) }}</td>
             <td colspan="3"></td>
         </tr>
         </tfoot>

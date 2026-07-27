@@ -7,6 +7,7 @@ use App\Models\BranchStock;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductReturn;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockMovement;
@@ -71,6 +72,17 @@ class ReportController extends Controller
             'total_discount' => (clone $query)->where('status', 'completed')->sum('discount'),
             'balance_due'    => (clone $query)->where('status', 'partial')->sum('balance_due'),
         ];
+
+        // Approved returns/refunds, scoped by the same branch + date filters as the sales above
+        $returnsQuery = ProductReturn::where('status', 'approved')
+            ->when(!$isSuperAdmin && !$canViewAll, fn($q) =>
+            $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+            ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to));
+
+        $summary['total_refunds'] = (clone $returnsQuery)->sum('refund_amount');
+        $summary['net_sales']     = $summary['total_sales'] - $summary['total_refunds'];
 
         // Sales by payment method
         $byPayment = Sale::select('payment_method',

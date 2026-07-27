@@ -15,7 +15,10 @@ class SalesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
 
     public function query()
     {
-        $query = Sale::with(['branch', 'user', 'customer'])
+        $query = Sale::with([
+            'branch', 'user', 'customer',
+            'returns' => fn($q) => $q->where('status', 'approved'),
+        ])
             ->where('status', 'completed');
 
         if (!empty($this->filters['branch_id'])) {
@@ -40,11 +43,14 @@ class SalesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             'Invoice No', 'Branch', 'Customer', 'Cashier',
             'Total Amount', 'Discount', 'Amount Paid',
             'Balance Due', 'Payment Method', 'Status', 'Date',
+            'Refunds', 'Net Amount',
         ];
     }
 
     public function map($sale): array
     {
+        $refunds = $sale->returns->sum('refund_amount');
+
         return [
             $sale->invoice_no,
             $sale->branch?->name,
@@ -57,6 +63,8 @@ class SalesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             ucfirst($sale->payment_method),
             ucfirst($sale->status),
             $sale->created_at->format('d M Y H:i'),
+            $refunds,
+            $sale->total_amount - $refunds,
         ];
     }
 

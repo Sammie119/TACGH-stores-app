@@ -37,6 +37,7 @@ class Sale extends Model
     public function customer()     { return $this->belongsTo(Customer::class); }
     public function financialYear(){ return $this->belongsTo(FinancialYear::class); }
     public function items()        { return $this->hasMany(SaleItem::class); }
+    public function returns()      { return $this->hasMany(ProductReturn::class); }
 
     // Auto-generate invoice number
     public static function generateInvoiceNo(): string

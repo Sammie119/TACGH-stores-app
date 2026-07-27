@@ -118,6 +118,15 @@ class PdfController extends Controller
             'balance_due'    => $sales->where('status', 'partial')->sum('balance_due'),
         ];
 
+        $returnsQuery = ProductReturn::where('status', 'approved')
+            ->when(!$isSuperAdmin, fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->whereDate('created_at', '>=', $dateFrom)
+            ->whereDate('created_at', '<=', $dateTo);
+
+        $summary['total_refunds'] = $returnsQuery->sum('refund_amount');
+        $summary['net_revenue']   = $summary['total_revenue'] - $summary['total_refunds'];
+
         $byPayment = $sales->where('status', 'completed')
             ->groupBy('payment_method')
             ->map(fn($group) => [

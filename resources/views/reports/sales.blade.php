@@ -114,7 +114,7 @@
     </div>
 
     {{-- Summary cards --}}
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
         <div class="bg-white border border-gray-200 rounded-xl p-5">
             <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">
                 Total revenue
@@ -146,6 +146,23 @@
             <p class="text-2xl font-semibold
                   {{ $summary['balance_due'] > 0 ? 'text-red-600' : 'text-gray-800' }} mt-1">
                 GHS {{ number_format($summary['balance_due'], 2) }}
+            </p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">
+                Total refunds
+            </p>
+            <p class="text-2xl font-semibold
+                  {{ $summary['total_refunds'] > 0 ? 'text-red-600' : 'text-gray-800' }} mt-1">
+                GHS {{ number_format($summary['total_refunds'], 2) }}
+            </p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">
+                Net sales
+            </p>
+            <p class="text-2xl font-semibold text-gray-800 mt-1">
+                GHS {{ number_format($summary['net_sales'], 2) }}
             </p>
         </div>
     </div>
