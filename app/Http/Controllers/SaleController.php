@@ -87,7 +87,10 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
-        $sale->load(['items.product', 'customer', 'user', 'branch', 'financialYear']);
+        $sale->load([
+            'items.product', 'customer', 'user', 'branch', 'financialYear',
+            'returns' => fn($q) => $q->where('status', 'approved'),
+        ]);
         return view('sales.show', compact('sale'));
     }
 

@@ -106,6 +106,14 @@
                             </dd>
                         </div>
                     @endif
+                    @if($sale->returns->isNotEmpty())
+                        <div style="display:flex;justify-content:space-between">
+                            <dt class="text-amber-600 font-medium">Refunded</dt>
+                            <dd class="text-amber-600 font-semibold">
+                                GHS {{ number_format($sale->returns->sum('refund_amount'), 2) }}
+                            </dd>
+                        </div>
+                    @endif
                 </dl>
             </div>
 
