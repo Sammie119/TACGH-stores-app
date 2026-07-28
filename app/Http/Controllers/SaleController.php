@@ -18,10 +18,15 @@ class SaleController extends Controller
         $isSuperAdmin = $this->canViewAllBranches();
         $canViewAll   = $user->can('view all branch sales');
 
+        $withRelations = [
+            'user', 'branch', 'customer',
+            'returns' => fn($q) => $q->where('status', 'approved'),
+        ];
+
         if ($request->get('trashed')) {
-            $query = Sale::onlyTrashed()->with(['user', 'branch', 'customer']);
+            $query = Sale::onlyTrashed()->with($withRelations);
         } else {
-            $query = Sale::with(['user', 'branch', 'customer']);
+            $query = Sale::with($withRelations);
         }
 
         // Restrict to own branch unless super admin or auditor

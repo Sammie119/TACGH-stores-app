@@ -176,6 +176,11 @@
                                 Balance: GHS {{ number_format($sale->balance_due, 2) }}
                             </p>
                         @endif
+                        @if($sale->returns->isNotEmpty())
+                            <p class="text-xs text-amber-600">
+                                Refunded: GHS {{ number_format($sale->returns->sum('refund_amount'), 2) }}
+                            </p>
+                        @endif
                     </td>
 
                     <td class="px-5 py-3">
