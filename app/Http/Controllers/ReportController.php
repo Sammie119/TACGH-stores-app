@@ -91,6 +91,12 @@ class ReportController extends Controller
             ->where('status', 'completed')
             ->when(!$isSuperAdmin && !$canViewAll,
                 fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id,
+                fn($q) => $q->where('branch_id', $request->branch_id))
+            ->when($request->payment_method,
+                fn($q) => $q->where('payment_method', $request->payment_method))
+            ->when($request->user_id,
+                fn($q) => $q->where('user_id', $request->user_id))
             ->when($request->date_from,
                 fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
             ->when($request->date_to,
@@ -107,6 +113,14 @@ class ReportController extends Controller
             ->with('product')
             ->whereHas('sale', fn($q) =>
             $q->where('status', 'completed')
+                ->when(!$isSuperAdmin && !$canViewAll,
+                    fn($q) => $q->where('branch_id', $user->branch_id))
+                ->when($request->branch_id,
+                    fn($q) => $q->where('branch_id', $request->branch_id))
+                ->when($request->payment_method,
+                    fn($q) => $q->where('payment_method', $request->payment_method))
+                ->when($request->user_id,
+                    fn($q) => $q->where('user_id', $request->user_id))
                 ->when($request->date_from,
                     fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
                 ->when($request->date_to,
