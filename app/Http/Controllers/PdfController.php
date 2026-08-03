@@ -170,6 +170,11 @@ class PdfController extends Controller
                 fn($q) => $q->where('branch_stock.branch_id', $request->branch_id))
             ->when($request->category_id,
                 fn($q) => $q->where('products.category_id', $request->category_id))
+            ->when($request->stock_status === 'low', fn($q) =>
+            $q->whereColumn('branch_stock.quantity', '<=', 'products.reorder_level')
+                ->where('branch_stock.quantity', '>', 0))
+            ->when($request->stock_status === 'out', fn($q) =>
+            $q->where('branch_stock.quantity', '<=', 0))
             ->orderBy('products.name')
             ->get();
 

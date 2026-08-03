@@ -23,6 +23,15 @@ class InventoryExport implements FromQuery, WithHeadings, WithMapping, WithStyle
         if (!empty($this->filters['branch_id'])) {
             $query->where('branch_stock.branch_id', $this->filters['branch_id']);
         }
+        if (!empty($this->filters['category_id'])) {
+            $query->where('products.category_id', $this->filters['category_id']);
+        }
+        if (($this->filters['stock_status'] ?? null) === 'low') {
+            $query->whereColumn('branch_stock.quantity', '<=', 'products.reorder_level')
+                ->where('branch_stock.quantity', '>', 0);
+        } elseif (($this->filters['stock_status'] ?? null) === 'out') {
+            $query->where('branch_stock.quantity', '<=', 0);
+        }
 
         return $query->orderBy('products.name');
     }

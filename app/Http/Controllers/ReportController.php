@@ -182,10 +182,14 @@ class ReportController extends Controller
 
         $stock = $query->orderBy('products.name')->paginate(25)->withQueryString();
 
-        // Summary
+        // Summary — scoped by the same branch/category filters as the table above
         $totalValue = BranchStock::join('products', 'branch_stock.product_id', '=', 'products.id')
             ->when(!$isSuperAdmin, fn($q) =>
             $q->where('branch_stock.branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) =>
+            $q->where('branch_stock.branch_id', $request->branch_id))
+            ->when($request->category_id, fn($q) =>
+            $q->where('products.category_id', $request->category_id))
             ->selectRaw('SUM(branch_stock.quantity * products.cost_price) as cost_value,
                          SUM(branch_stock.quantity * products.selling_price) as selling_value')
             ->first();
@@ -195,11 +199,20 @@ class ReportController extends Controller
             ->where('branch_stock.quantity', '>', 0)
             ->when(!$isSuperAdmin, fn($q) =>
             $q->where('branch_stock.branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) =>
+            $q->where('branch_stock.branch_id', $request->branch_id))
+            ->when($request->category_id, fn($q) =>
+            $q->where('products.category_id', $request->category_id))
             ->count();
 
-        $outCount = BranchStock::where('quantity', '<=', 0)
+        $outCount = BranchStock::join('products', 'branch_stock.product_id', '=', 'products.id')
+            ->where('branch_stock.quantity', '<=', 0)
             ->when(!$isSuperAdmin, fn($q) =>
-            $q->where('branch_id', $user->branch_id))
+            $q->where('branch_stock.branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) =>
+            $q->where('branch_stock.branch_id', $request->branch_id))
+            ->when($request->category_id, fn($q) =>
+            $q->where('products.category_id', $request->category_id))
             ->count();
 
         $branches   = Branch::where('is_active', true)->get();
@@ -288,28 +301,30 @@ class ReportController extends Controller
     {
         $this->authorize('export reports');
 
+        $filters = $request->only([
+            'branch_id', 'date_from', 'date_to', 'status', 'payment_method', 'user_id'
+        ]);
+        if (!$this->canViewAllBranches()) {
+            $filters['branch_id'] = auth()->user()->branch_id;
+        }
+
         $filename = 'sales-report-' . now()->format('Y-m-d') . '.xlsx';
 
-        return Excel::download(
-            new SalesExport($request->only([
-                'branch_id', 'date_from', 'date_to', 'status', 'payment_method', 'user_id'
-            ])),
-            $filename
-        );
+        return Excel::download(new SalesExport($filters), $filename);
     }
 
     public function exportInventory(Request $request)
     {
         $this->authorize('export reports');
 
+        $filters = $request->only(['branch_id', 'category_id', 'stock_status']);
+        if (!$this->canViewAllBranches()) {
+            $filters['branch_id'] = auth()->user()->branch_id;
+        }
+
         $filename = 'inventory-report-' . now()->format('Y-m-d') . '.xlsx';
 
-        return Excel::download(
-            new InventoryExport($request->only([
-                'branch_id', 'category_id'
-            ])),
-            $filename
-        );
+        return Excel::download(new InventoryExport($filters), $filename);
     }
 
     // ── Product report ────────────────────────────────────────────
