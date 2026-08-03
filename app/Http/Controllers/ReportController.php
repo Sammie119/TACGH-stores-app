@@ -73,13 +73,18 @@ class ReportController extends Controller
             'balance_due'    => (clone $query)->where('status', 'partial')->sum('balance_due'),
         ];
 
-        // Approved returns/refunds, scoped by the same branch + date filters as the sales above
+        // Approved returns/refunds, scoped by the same filters as the sales above.
+        // payment_method and user_id live on the related Sale, not on the return itself.
         $returnsQuery = ProductReturn::where('status', 'approved')
             ->when(!$isSuperAdmin && !$canViewAll, fn($q) =>
             $q->where('branch_id', $user->branch_id))
             ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
             ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-            ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to));
+            ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->when($request->payment_method, fn($q) =>
+            $q->whereHas('sale', fn($q2) => $q2->where('payment_method', $request->payment_method)))
+            ->when($request->user_id, fn($q) =>
+            $q->whereHas('sale', fn($q2) => $q2->where('user_id', $request->user_id)));
 
         $summary['total_refunds'] = (clone $returnsQuery)->sum('refund_amount');
         $summary['net_sales']     = $summary['total_sales'] - $summary['total_refunds'];
