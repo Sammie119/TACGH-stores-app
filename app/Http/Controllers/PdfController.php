@@ -92,6 +92,10 @@ class PdfController extends Controller
                 fn($q) => $q->where('branch_id', $request->branch_id))
             ->when($request->status,
                 fn($q) => $q->where('status', $request->status))
+            ->when($request->payment_method,
+                fn($q) => $q->where('payment_method', $request->payment_method))
+            ->when($request->user_id,
+                fn($q) => $q->where('user_id', $request->user_id))
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo)
             ->latest();
@@ -121,6 +125,10 @@ class PdfController extends Controller
         $returnsQuery = ProductReturn::where('status', 'approved')
             ->when(!$isSuperAdmin, fn($q) => $q->where('branch_id', $user->branch_id))
             ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->when($request->payment_method, fn($q) =>
+            $q->whereHas('sale', fn($q2) => $q2->where('payment_method', $request->payment_method)))
+            ->when($request->user_id, fn($q) =>
+            $q->whereHas('sale', fn($q2) => $q2->where('user_id', $request->user_id)))
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo);
 
