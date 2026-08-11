@@ -30,18 +30,25 @@
             @endif
 
             <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Parent category</label>
+                <select id="parent-category"
+                        class="h-9 px-3 rounded-lg border border-gray-300 bg-white
+                           text-sm text-gray-700 focus:outline-none
+                           focus:ring-2 focus:ring-blue-500">
+                    <option value="">All parent categories</option>
+                    @foreach($categories->whereNull('parent_id') as $root)
+                        <option value="{{ $root->id }}">{{ $root->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Category</label>
-                <select name="category_id"
+                <select name="category_id" id="category-select"
                         class="h-9 px-3 rounded-lg border border-gray-300 bg-white
                            text-sm text-gray-700 focus:outline-none
                            focus:ring-2 focus:ring-blue-500">
                     <option value="">All categories</option>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat->id }}"
-                            {{ request('category_id') == $cat->id ? 'selected' : '' }}>
-                            {{ $cat->name }}
-                        </option>
-                    @endforeach
                 </select>
             </div>
 
@@ -255,3 +262,61 @@
     </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    @php
+        $categoriesData = $categories->map(fn($c) => [
+            'id' => $c->id, 'name' => $c->name, 'parent_id' => $c->parent_id,
+        ]);
+    @endphp
+    const allCategories = @json($categoriesData);
+
+    function collectDescendants(parentId, depth, acc) {
+        allCategories
+            .filter(c => c.parent_id == parentId)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .forEach(c => {
+                acc.push({ id: c.id, name: c.name, depth });
+                collectDescendants(c.id, depth + 1, acc);
+            });
+        return acc;
+    }
+
+    function populateCategorySelect(parentId, selectedId = '') {
+        const sel = document.getElementById('category-select');
+        sel.innerHTML = '';
+        if (!parentId) {
+            sel.appendChild(new Option('All categories', ''));
+            return;
+        }
+        const parent = allCategories.find(c => c.id == parentId);
+        sel.appendChild(new Option('All in ' + (parent?.name ?? ''), parentId));
+        collectDescendants(parentId, 1, []).forEach(c => {
+            sel.appendChild(new Option('  '.repeat(c.depth - 1) + '— ' + c.name, c.id));
+        });
+        sel.value = selectedId || parentId;
+    }
+
+    document.getElementById('parent-category').addEventListener('change', function () {
+        populateCategorySelect(this.value);
+    });
+
+    // Restore state from the current filter value on load
+    (function () {
+        const currentId = '{{ request('category_id') }}';
+        if (currentId) {
+            let current = allCategories.find(c => c.id == currentId);
+            let rootId = current?.id ?? '';
+            while (current && current.parent_id) {
+                current = allCategories.find(c => c.id == current.parent_id);
+                if (current) rootId = current.id;
+            }
+            document.getElementById('parent-category').value = rootId;
+            populateCategorySelect(rootId, currentId);
+        } else {
+            populateCategorySelect('');
+        }
+    })();
+</script>
+@endpush

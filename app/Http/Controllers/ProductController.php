@@ -31,7 +31,12 @@ class ProductController extends Controller
         }
 
         if ($request->get('category')) {
-            $query->where('category_id', $request->get('category'));
+            $selectedCategory = ProductCategory::find($request->get('category'));
+            // getAllDescendantIds() already includes the category's own id.
+            $categoryIds = $selectedCategory
+                ? $selectedCategory->getAllDescendantIds()
+                : [$request->get('category')];
+            $query->whereIn('category_id', $categoryIds);
         }
 
         if ($request->get('stock') === 'low') {

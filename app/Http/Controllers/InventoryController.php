@@ -35,7 +35,11 @@ class InventoryController extends Controller
         }
 
         if ($request->get('category')) {
-            $query->where('products.category_id', $request->get('category'));
+            $selectedCategory = \App\Models\ProductCategory::find($request->get('category'));
+            $categoryIds = $selectedCategory
+                ? $selectedCategory->getAllDescendantIds()
+                : [$request->get('category')];
+            $query->whereIn('products.category_id', $categoryIds);
         }
 
         if ($request->get('search')) {

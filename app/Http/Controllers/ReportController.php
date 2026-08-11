@@ -158,6 +158,16 @@ class ReportController extends Controller
         $user         = auth()->user();
         $isSuperAdmin = $this->canViewAllBranches();
 
+        // A parent category resolves to itself + all descendants; a leaf
+        // category (or one with no children) resolves to just itself.
+        $categoryIds = null;
+        if ($request->category_id) {
+            $selectedCategory = ProductCategory::find($request->category_id);
+            $categoryIds = $selectedCategory
+                ? $selectedCategory->getAllDescendantIds()
+                : [$request->category_id];
+        }
+
         $query = BranchStock::with(['product.category', 'branch'])
             ->join('products', 'branch_stock.product_id', '=', 'products.id')
             ->select('branch_stock.*')
@@ -172,8 +182,8 @@ class ReportController extends Controller
             $query->where('branch_stock.branch_id', $request->branch_id);
         }
 
-        if ($request->category_id) {
-            $query->where('products.category_id', $request->category_id);
+        if ($categoryIds) {
+            $query->whereIn('products.category_id', $categoryIds);
         }
 
         if ($request->stock_status === 'low') {
@@ -191,8 +201,8 @@ class ReportController extends Controller
             $q->where('branch_stock.branch_id', $user->branch_id))
             ->when($request->branch_id, fn($q) =>
             $q->where('branch_stock.branch_id', $request->branch_id))
-            ->when($request->category_id, fn($q) =>
-            $q->where('products.category_id', $request->category_id))
+            ->when($categoryIds, fn($q) =>
+            $q->whereIn('products.category_id', $categoryIds))
             ->selectRaw('SUM(branch_stock.quantity * products.cost_price) as cost_value,
                          SUM(branch_stock.quantity * products.selling_price) as selling_value')
             ->first();
@@ -204,8 +214,8 @@ class ReportController extends Controller
             $q->where('branch_stock.branch_id', $user->branch_id))
             ->when($request->branch_id, fn($q) =>
             $q->where('branch_stock.branch_id', $request->branch_id))
-            ->when($request->category_id, fn($q) =>
-            $q->where('products.category_id', $request->category_id))
+            ->when($categoryIds, fn($q) =>
+            $q->whereIn('products.category_id', $categoryIds))
             ->count();
 
         $outCount = BranchStock::join('products', 'branch_stock.product_id', '=', 'products.id')
@@ -214,8 +224,8 @@ class ReportController extends Controller
             $q->where('branch_stock.branch_id', $user->branch_id))
             ->when($request->branch_id, fn($q) =>
             $q->where('branch_stock.branch_id', $request->branch_id))
-            ->when($request->category_id, fn($q) =>
-            $q->where('products.category_id', $request->category_id))
+            ->when($categoryIds, fn($q) =>
+            $q->whereIn('products.category_id', $categoryIds))
             ->count();
 
         $branches   = Branch::where('is_active', true)->get();
@@ -321,6 +331,14 @@ class ReportController extends Controller
         $this->authorize('export reports');
 
         $filters = $request->only(['branch_id', 'category_id', 'stock_status']);
+
+        if (!empty($filters['category_id'])) {
+            $selectedCategory = ProductCategory::find($filters['category_id']);
+            $filters['category_id'] = $selectedCategory
+                ? $selectedCategory->getAllDescendantIds()
+                : [$filters['category_id']];
+        }
+
         if (!$this->canViewAllBranches()) {
             $filters['branch_id'] = auth()->user()->branch_id;
         }

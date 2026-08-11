@@ -159,6 +159,14 @@ class PdfController extends Controller
         $user         = auth()->user();
         $isSuperAdmin = $this->canViewAllBranches();
 
+        $categoryIds = null;
+        if ($request->category_id) {
+            $selectedCategory = ProductCategory::find($request->category_id);
+            $categoryIds = $selectedCategory
+                ? $selectedCategory->getAllDescendantIds()
+                : [$request->category_id];
+        }
+
         $stock = BranchStock::with(['product.category', 'branch'])
             ->join('products', 'branch_stock.product_id', '=', 'products.id')
             ->select('branch_stock.*')
@@ -168,8 +176,8 @@ class PdfController extends Controller
                 fn($q) => $q->where('branch_stock.branch_id', $user->branch_id))
             ->when($request->branch_id,
                 fn($q) => $q->where('branch_stock.branch_id', $request->branch_id))
-            ->when($request->category_id,
-                fn($q) => $q->where('products.category_id', $request->category_id))
+            ->when($categoryIds,
+                fn($q) => $q->whereIn('products.category_id', $categoryIds))
             ->when($request->stock_status === 'low', fn($q) =>
             $q->whereColumn('branch_stock.quantity', '<=', 'products.reorder_level')
                 ->where('branch_stock.quantity', '>', 0))
