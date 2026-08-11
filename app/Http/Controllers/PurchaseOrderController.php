@@ -275,23 +275,38 @@ class PurchaseOrderController extends Controller
         }
 
         $request->validate([
-            'received_quantities'   => 'required|array',
-            'received_quantities.*' => 'required|numeric|min:0',
-            'received_date'         => 'required|date',
+            'received_quantities'    => 'required|array',
+            'received_quantities.*'  => 'required|numeric|min:0',
+            'received_unit_costs'    => 'nullable|array',
+            'received_unit_costs.*'  => 'nullable|numeric|min:0',
+            'received_date'          => 'required|date',
         ]);
 
         $purchaseOrder->load('items.product');
 
         DB::transaction(function () use ($request, $purchaseOrder) {
+            $originalStatus  = $purchaseOrder->status;
+            $oldBalanceDue   = $purchaseOrder->balance_due;
+
             $allReceived = true;
             $anyReceived = false;
 
             foreach ($purchaseOrder->items as $item) {
-                $received = $request->received_quantities[$item->id] ?? 0;
-                $item->update(['quantity_received' => $received]);
+                // Quantity newly delivered in *this* receiving event (not a running total).
+                $deltaReceived = (float) ($request->received_quantities[$item->id] ?? 0);
 
-                if ($received > 0) {
+                if ($deltaReceived > 0) {
                     $anyReceived = true;
+
+                    $unitCost = $request->received_unit_costs[$item->id] ?? null;
+                    $unitCostChanged = $unitCost !== null && (float) $unitCost !== (float) $item->unit_cost;
+
+                    $item->quantity_received += $deltaReceived;
+                    if ($unitCostChanged) {
+                        $item->unit_cost = $unitCost;
+                        $item->subtotal  = $unitCost * $item->quantity_ordered;
+                    }
+                    $item->save();
 
                     // Add stock to branch
                     $stock = BranchStock::firstOrCreate(
@@ -302,9 +317,9 @@ class PurchaseOrderController extends Controller
                         ['quantity' => 0, 'last_updated' => now()]
                     );
 
-                    $stock->incrementStock($received);
+                    $stock->incrementStock($deltaReceived);
 
-                    // Update product cost price
+                    // Update product cost price to reflect what was actually paid
                     $item->product->update(['cost_price' => $item->unit_cost]);
 
                     StockMovement::record(
@@ -312,7 +327,7 @@ class PurchaseOrderController extends Controller
                         productId    : $item->product_id,
                         userId       : auth()->id(),
                         type         : 'restock',
-                        quantity     : $received,
+                        quantity     : $deltaReceived,
                         balanceAfter : $stock->quantity,
                         referenceType: 'purchase_order',
                         referenceId  : $purchaseOrder->id,
@@ -320,20 +335,35 @@ class PurchaseOrderController extends Controller
                     );
                 }
 
-                if ($received < $item->quantity_ordered) {
+                if ($item->quantity_received < $item->quantity_ordered) {
                     $allReceived = false;
+                }
+                if ($item->quantity_received > 0) {
+                    $anyReceived = true;
                 }
             }
 
             $status = $allReceived ? 'received' : ($anyReceived ? 'partial' : $purchaseOrder->status);
 
+            $totalAmount = $purchaseOrder->items->sum('subtotal');
+            $balanceDue  = $totalAmount - $purchaseOrder->amount_paid;
+
             $purchaseOrder->update([
                 'status'        => $status,
                 'received_date' => $request->received_date,
+                'total_amount'  => $totalAmount,
+                'balance_due'   => $balanceDue,
             ]);
 
-            // Update supplier balance
-            $purchaseOrder->supplier->increment('balance', $purchaseOrder->balance_due);
+            // Update supplier's outstanding balance. It's only added the first time
+            // this order is (partially or fully) received; later receiving events on
+            // the same order just adjust for any unit cost changes since then, so the
+            // debt isn't double-counted across multiple partial receipts.
+            if (in_array($originalStatus, ['approved', 'ordered'])) {
+                $purchaseOrder->supplier->increment('balance', $balanceDue);
+            } elseif ($balanceDue != $oldBalanceDue) {
+                $purchaseOrder->supplier->increment('balance', $balanceDue - $oldBalanceDue);
+            }
 
             activity()
                 ->performedOn($purchaseOrder)

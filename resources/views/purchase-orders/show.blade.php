@@ -329,7 +329,10 @@
                         <div class="px-5 py-4 border-b border-gray-100">
                             <p class="font-semibold text-gray-700">Receive stock</p>
                             <p class="text-xs text-gray-400 mt-0.5">
-                                Enter the quantity actually received for each item
+                                Enter the quantity actually delivered today for each item — you can
+                                receive more or less than what's remaining, and receive the rest
+                                later if the delivery is split. Adjust unit cost if the supplier's
+                                price changed.
                             </p>
                         </div>
                         <form method="POST"
@@ -358,11 +361,20 @@
                                         <th class="px-4 py-2.5 text-right text-xs font-semibold
                                            text-gray-500 uppercase">Ordered</th>
                                         <th class="px-4 py-2.5 text-right text-xs font-semibold
-                                           text-gray-500 uppercase">Qty received</th>
+                                           text-gray-500 uppercase">Received so far</th>
+                                        <th class="px-4 py-2.5 text-right text-xs font-semibold
+                                           text-gray-500 uppercase">Remaining</th>
+                                        <th class="px-4 py-2.5 text-right text-xs font-semibold
+                                           text-gray-500 uppercase">Unit cost</th>
+                                        <th class="px-4 py-2.5 text-right text-xs font-semibold
+                                           text-gray-500 uppercase">Receiving now</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     @foreach($purchaseOrder->items as $item)
+                                        @php
+                                            $remaining = max($item->quantity_ordered - $item->quantity_received, 0);
+                                        @endphp
                                         <tr class="border-b border-gray-50">
                                             <td class="px-4 py-3 font-medium text-gray-800">
                                                 {{ $item->product?->name }}
@@ -370,13 +382,28 @@
                                             <td class="px-4 py-3 text-right text-gray-600">
                                                 {{ number_format($item->quantity_ordered, 0) }}
                                             </td>
+                                            <td class="px-4 py-3 text-right text-gray-600">
+                                                {{ number_format($item->quantity_received, 0) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-right {{ $remaining > 0 ? 'text-amber-600 font-medium' : 'text-gray-400' }}">
+                                                {{ number_format($remaining, 0) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-right">
+                                                <input type="number"
+                                                       name="received_unit_costs[{{ $item->id }}]"
+                                                       value="{{ $item->unit_cost }}"
+                                                       min="0"
+                                                       step="0.01"
+                                                       style="width:90px;height:32px;padding:0 8px;
+                                                  border:1px solid #d1d5db;border-radius:6px;
+                                                  font-size:13px;text-align:right;outline:none">
+                                            </td>
                                             <td class="px-4 py-3 text-right">
                                                 <input type="number"
                                                        name="received_quantities[{{ $item->id }}]"
-                                                       value="{{ $item->quantity_ordered }}"
+                                                       value="{{ $remaining }}"
                                                        min="0"
                                                        step="0.01"
-                                                       max="{{ $item->quantity_ordered }}"
                                                        style="width:90px;height:32px;padding:0 8px;
                                                   border:1px solid #d1d5db;border-radius:6px;
                                                   font-size:13px;text-align:right;outline:none">
