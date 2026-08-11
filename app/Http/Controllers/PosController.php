@@ -63,20 +63,24 @@ class PosController extends Controller
             'items.*.quantity'   => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.subtotal'   => 'required|numeric|min:0',
-            'payment_method'     => 'required|in:cash,momo,bank,pos,split',
+            'payment_method'     => 'required|in:cash,momo,bank,pos,split,complementary',
             'amount_paid'        => 'required|numeric|min:0',
             'customer_id'        => 'nullable|exists:customers,id',
             'walkin_name'        => 'nullable|string|max:100',
             'discount'           => 'nullable|numeric|min:0',
             'notes'              => 'nullable|string|max:500',
+            'sale_date'             => 'required|date',
+            'transaction_reference' => 'nullable|string|max:100',
         ]);
 
         if ($request->payment_method === 'split') {
             $request->validate([
-                'split_method_1' => 'required|in:cash,momo,bank,pos',
-                'split_amount_1' => 'required|numeric|min:0.01',
-                'split_method_2' => 'required|in:cash,momo,bank,pos',
-                'split_amount_2' => 'required|numeric|min:0.01',
+                'split_method_1'    => 'required|in:cash,momo,bank,pos',
+                'split_amount_1'    => 'required|numeric|min:0.01',
+                'split_reference_1' => 'nullable|string|max:100',
+                'split_method_2'    => 'required|in:cash,momo,bank,pos',
+                'split_amount_2'    => 'required|numeric|min:0.01',
+                'split_reference_2' => 'nullable|string|max:100',
             ]);
         }
 
@@ -92,7 +96,19 @@ class PosController extends Controller
                 'Financial year is closed. No transactions allowed.');
         }
 
-        $sale = DB::transaction(function () use ($request, $user, $financialYear) {
+        $saleDate = \Carbon\Carbon::parse($request->sale_date);
+
+        if ($saleDate->gt(now())) {
+            return back()->with('error', 'Sale date cannot be in the future.');
+        }
+
+        if ($saleDate->lt($financialYear->start_date)) {
+            return back()->with('error',
+                'Sale date cannot be before the start of the current financial year ('
+                . $financialYear->start_date->format('d M Y') . ').');
+        }
+
+        $sale = DB::transaction(function () use ($request, $user, $financialYear, $saleDate) {
 
             // ── Validate stock & calculate total from subtotals ───────────
             // We trust the subtotal from JS because it already has item
@@ -123,6 +139,18 @@ class PosController extends Controller
             $amountPaid      = (float) $request->amount_paid;
             $balanceDue      = max(0, $finalTotal - $amountPaid);
 
+            // ── Complementary sales: no money changes hands ────────────────
+            // Quantity still deducts stock and creates a movement record below;
+            // only the monetary fields are forced to zero, server-side, so this
+            // holds regardless of whatever the client happened to submit.
+            $isComplementary = $request->payment_method === 'complementary';
+            if ($isComplementary) {
+                $overallDiscount = 0;
+                $finalTotal      = 0;
+                $amountPaid      = 0;
+                $balanceDue      = 0;
+            }
+
             // ── Determine status ──────────────────────────────────────────
             $status = 'completed';
             if ($request->payment_method === 'credit' && $amountPaid <= 0) {
@@ -147,13 +175,22 @@ class PosController extends Controller
                 'amount_paid'       => $amountPaid,
                 'balance_due'       => $balanceDue,
                 'payment_method'    => $request->payment_method,
+                'transaction_reference' => in_array($request->payment_method, ['momo', 'bank', 'pos'])
+                    ? $request->transaction_reference : null,
                 'split_method_1'    => $request->payment_method === 'split' ? $request->split_method_1 : null,
                 'split_amount_1'    => $request->payment_method === 'split' ? $request->split_amount_1 : null,
+                'split_reference_1' => $request->payment_method === 'split' ? $request->split_reference_1 : null,
                 'split_method_2'    => $request->payment_method === 'split' ? $request->split_method_2 : null,
                 'split_amount_2'    => $request->payment_method === 'split' ? $request->split_amount_2 : null,
+                'split_reference_2' => $request->payment_method === 'split' ? $request->split_reference_2 : null,
                 'status'            => $status,
                 'notes'             => $request->notes,
             ]);
+
+            // Backdate to when the sale actually happened (e.g. entered after
+            // a power outage) rather than leaving Eloquent's automatic "now".
+            $sale->created_at = $saleDate;
+            $sale->save();
 
             // ── Create items and deduct stock ─────────────────────────────
             foreach ($request->items as $item) {
@@ -164,6 +201,12 @@ class PosController extends Controller
                 // Derive item discount from the difference
                 // (unit_price * qty) - subtotal = item discount
                 $itemDiscount = max(0, ($unitPrice * $qty) - $subtotal);
+
+                if ($isComplementary) {
+                    $unitPrice    = 0;
+                    $subtotal     = 0;
+                    $itemDiscount = 0;
+                }
 
                 SaleItem::create([
                     'sale_id'    => $sale->id,
@@ -190,7 +233,7 @@ class PosController extends Controller
                     balanceAfter : $stock->quantity,
                     referenceType: 'sale',
                     referenceId  : $sale->id,
-                    notes        : 'Sale — ' . $sale->invoice_no
+                    notes        : ($isComplementary ? 'Complementary sale — ' : 'Sale — ') . $sale->invoice_no
                 );
             }
 

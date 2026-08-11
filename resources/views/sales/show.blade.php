@@ -36,6 +36,31 @@
                         <dt class="text-gray-500">Payment</dt>
                         <dd class="text-gray-700">{{ ucfirst($sale->payment_method) }}</dd>
                     </div>
+                    @if($sale->payment_method === 'split')
+                        <div style="display:flex;justify-content:space-between;gap:8px">
+                            <dt class="text-gray-500 text-xs">— {{ ucfirst($sale->split_method_1) }}</dt>
+                            <dd class="text-gray-700 text-xs">
+                                GHS {{ number_format($sale->split_amount_1, 2) }}
+                                @if($sale->split_reference_1)
+                                    <span class="text-gray-400">({{ $sale->split_reference_1 }})</span>
+                                @endif
+                            </dd>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;gap:8px">
+                            <dt class="text-gray-500 text-xs">— {{ ucfirst($sale->split_method_2) }}</dt>
+                            <dd class="text-gray-700 text-xs">
+                                GHS {{ number_format($sale->split_amount_2, 2) }}
+                                @if($sale->split_reference_2)
+                                    <span class="text-gray-400">({{ $sale->split_reference_2 }})</span>
+                                @endif
+                            </dd>
+                        </div>
+                    @elseif($sale->transaction_reference)
+                        <div style="display:flex;justify-content:space-between;gap:8px">
+                            <dt class="text-gray-500">Transaction ID</dt>
+                            <dd class="text-gray-700 font-mono">{{ $sale->transaction_reference }}</dd>
+                        </div>
+                    @endif
                     <div style="display:flex;justify-content:space-between;gap:8px">
                         <dt class="text-gray-500">Financial year</dt>
                         <dd class="text-gray-700">{{ $sale->financialYear?->name ?? '—' }}</dd>

@@ -189,7 +189,8 @@
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;
                             gap:6px;margin-bottom:20px">
                     @foreach(['cash' => 'Cash', 'momo' => 'MoMo', 'bank' => 'Bank',
-                              'pos' => 'POS', 'split' => 'Split'] as $val => $label)
+                              'pos' => 'POS', 'split' => 'Split',
+                              'complementary' => 'Complementary'] as $val => $label)
                         <div id="pm-{{ $val }}"
                              onclick="selectPayment('{{ $val }}')"
                              style="padding:9px 4px;border:1px solid
@@ -206,6 +207,18 @@
                     @endforeach
                 </div>
 
+                {{-- Transaction reference (shown for momo/bank/pos) --}}
+                <div id="txn-ref-section" style="display:none;margin-bottom:16px">
+                    <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:5px">
+                        Transaction ID <span style="color:#9ca3af">(optional)</span>
+                    </label>
+                    <input type="text" id="transaction-reference"
+                           placeholder="e.g. MTN MoMo ref, terminal ref…"
+                           style="width:100%;height:36px;padding:0 10px;
+                                  border:1px solid #d1d5db;border-radius:8px;
+                                  font-size:13px;color:#111827;outline:none;box-sizing:border-box">
+                </div>
+
                 {{-- Split payment detail (shown only when Split is selected) --}}
                 <div id="split-section" style="display:none;margin-bottom:16px;
                      background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px">
@@ -216,7 +229,7 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
                         <div>
                             <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Method 1</label>
-                            <select id="split-method-1" onchange="updateSplitDefaults()"
+                            <select id="split-method-1" onchange="updateSplitDefaults(); toggleSplitRef(1)"
                                     style="width:100%;height:36px;padding:0 8px;border:1px solid #d1d5db;
                                            border-radius:7px;font-size:13px;color:#111827;background:#fff">
                                 <option value="cash">Cash</option>
@@ -234,10 +247,16 @@
                                           color:#111827;box-sizing:border-box">
                         </div>
                     </div>
+                    <div id="split-ref-1-wrap" style="display:none;margin-bottom:8px">
+                        <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Transaction ID 1 (optional)</label>
+                        <input type="text" id="split-reference-1" placeholder="e.g. MoMo ref…"
+                               style="width:100%;height:34px;padding:0 8px;border:1px solid #d1d5db;
+                                      border-radius:7px;font-size:13px;color:#111827;box-sizing:border-box">
+                    </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                         <div>
                             <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Method 2</label>
-                            <select id="split-method-2"
+                            <select id="split-method-2" onchange="toggleSplitRef(2)"
                                     style="width:100%;height:36px;padding:0 8px;border:1px solid #d1d5db;
                                            border-radius:7px;font-size:13px;color:#111827;background:#fff">
                                 <option value="momo">Mobile Money</option>
@@ -254,6 +273,12 @@
                                           border-radius:7px;font-size:14px;font-weight:600;text-align:right;
                                           color:#111827;background:#fff;box-sizing:border-box">
                         </div>
+                    </div>
+                    <div id="split-ref-2-wrap" style="display:none;margin-top:8px">
+                        <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Transaction ID 2 (optional)</label>
+                        <input type="text" id="split-reference-2" placeholder="e.g. MoMo ref…"
+                               style="width:100%;height:34px;padding:0 8px;border:1px solid #d1d5db;
+                                      border-radius:7px;font-size:13px;color:#111827;box-sizing:border-box">
                     </div>
                 </div>
 
@@ -308,6 +333,22 @@
                                   border:1px solid #d1d5db;border-radius:8px;
                                   font-size:20px;font-weight:700;text-align:right;
                                   color:#111827;outline:none;box-sizing:border-box">
+                </div>
+
+                {{-- Sale date & time --}}
+                <div style="margin-bottom:16px">
+                    <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:5px">
+                        Sale date &amp; time
+                    </label>
+                    <input type="datetime-local" id="sale-date"
+                           value="{{ now()->format('Y-m-d\TH:i') }}"
+                           max="{{ now()->format('Y-m-d\TH:i') }}"
+                           style="width:100%;height:36px;padding:0 10px;
+                                  border:1px solid #d1d5db;border-radius:8px;
+                                  font-size:13px;color:#111827;outline:none;box-sizing:border-box">
+                    <p style="font-size:11px;color:#9ca3af;margin-top:4px">
+                        Change this only when entering a sale made earlier (e.g. after a power outage).
+                    </p>
                 </div>
 
                 {{-- Notes --}}
@@ -428,10 +469,14 @@
         <input type="hidden" name="walkin_name"     id="form-walkin">
         <input type="hidden" name="discount"        id="form-discount">
         <input type="hidden" name="notes"           id="form-notes">
+        <input type="hidden" name="sale_date"             id="form-sale-date">
+        <input type="hidden" name="transaction_reference" id="form-transaction-reference">
         <input type="hidden" name="split_method_1"  id="form-split-method-1">
         <input type="hidden" name="split_amount_1"  id="form-split-amount-1">
+        <input type="hidden" name="split_reference_1" id="form-split-reference-1">
         <input type="hidden" name="split_method_2"  id="form-split-method-2">
         <input type="hidden" name="split_amount_2"  id="form-split-amount-2">
+        <input type="hidden" name="split_reference_2" id="form-split-reference-2">
         <div id="form-items"></div>
     </form>
 
@@ -698,10 +743,15 @@
                     (s, i) => s + (i.price * i.qty) - i.discount, 0);
                 const overallDiscount =
                     parseFloat(document.getElementById('overall-discount').value) || 0;
-                const total = Math.max(0, subtotal - overallDiscount);
+                let total = Math.max(0, subtotal - overallDiscount);
 
                 document.getElementById('subtotal-display').textContent =
                     `GHS ${subtotal.toFixed(2)}`;
+
+                if (selectedPayment === 'complementary') {
+                    total = 0;
+                }
+
                 document.getElementById('total-display').textContent =
                     `GHS ${total.toFixed(2)}`;
                 if (selectedPayment === 'split') {
@@ -737,7 +787,7 @@
             // ── Payment method ────────────────────────────────────────────
             function selectPayment(method) {
                 selectedPayment = method;
-                ['cash','momo','bank','pos','split'].forEach(m => {
+                ['cash','momo','bank','pos','split','complementary'].forEach(m => {
                     const el   = document.getElementById(`pm-${m}`);
                     const span = document.getElementById(`pm-label-${m}`);
                     if (!el) return;
@@ -746,23 +796,46 @@
                     span.style.color     = m === method ? '#2563eb' : '#374151';
                 });
 
-                const splitSection = document.getElementById('split-section');
-                const amountPaid   = document.getElementById('amount-paid');
+                const splitSection  = document.getElementById('split-section');
+                const amountPaid    = document.getElementById('amount-paid');
+                const discountInput = document.getElementById('overall-discount');
+                const txnRefSection = document.getElementById('txn-ref-section');
+
+                txnRefSection.style.display = ['momo','bank','pos'].includes(method) ? 'block' : 'none';
+
                 if (method === 'split') {
-                    splitSection.style.display = 'block';
-                    amountPaid.readOnly        = true;
+                    splitSection.style.display  = 'block';
+                    amountPaid.readOnly         = true;
                     amountPaid.style.background = '#f9fafb';
                     amountPaid.style.color      = '#6b7280';
+                    discountInput.readOnly      = false;
                     const total = parseFloat(document.getElementById('total-display').textContent.replace('GHS ','')) || 0;
                     document.getElementById('split-amount-1').value = total.toFixed(2);
                     document.getElementById('split-amount-2').value = '0.00';
-                    updateSplitTotals();
+                    toggleSplitRef(1);
+                    toggleSplitRef(2);
+                } else if (method === 'complementary') {
+                    splitSection.style.display  = 'none';
+                    amountPaid.readOnly         = true;
+                    amountPaid.style.background = '#f9fafb';
+                    amountPaid.style.color      = '#6b7280';
+                    discountInput.value         = '0';
+                    discountInput.readOnly      = true;
                 } else {
                     splitSection.style.display  = 'none';
                     amountPaid.readOnly         = false;
                     amountPaid.style.background = '';
                     amountPaid.style.color      = '#111827';
+                    discountInput.readOnly      = false;
                 }
+
+                updateTotals();
+            }
+
+            function toggleSplitRef(n) {
+                const method = document.getElementById('split-method-' + n).value;
+                document.getElementById('split-ref-' + n + '-wrap').style.display =
+                    method === 'cash' ? 'none' : 'block';
             }
 
             function updateSplitDefaults() {
@@ -772,6 +845,7 @@
                 if (m2Select.value === m1) {
                     const alternatives = ['cash','momo','bank','pos'].filter(m => m !== m1);
                     m2Select.value = alternatives[0];
+                    toggleSplitRef(2);
                 }
             }
 
@@ -820,11 +894,15 @@
                         return;
                     }
 
-                    document.getElementById('form-split-method-1').value = m1;
-                    document.getElementById('form-split-amount-1').value = a1.toFixed(2);
-                    document.getElementById('form-split-method-2').value = m2;
-                    document.getElementById('form-split-amount-2').value = a2.toFixed(2);
-                    document.getElementById('form-paid').value           = (a1 + a2).toFixed(2);
+                    document.getElementById('form-split-method-1').value    = m1;
+                    document.getElementById('form-split-amount-1').value    = a1.toFixed(2);
+                    document.getElementById('form-split-reference-1').value =
+                        document.getElementById('split-reference-1').value;
+                    document.getElementById('form-split-method-2').value    = m2;
+                    document.getElementById('form-split-amount-2').value    = a2.toFixed(2);
+                    document.getElementById('form-split-reference-2').value =
+                        document.getElementById('split-reference-2').value;
+                    document.getElementById('form-paid').value              = (a1 + a2).toFixed(2);
                 }
 
                 // Populate hidden form fields
@@ -836,6 +914,9 @@
                 document.getElementById('form-walkin').value   = walkinName;
                 document.getElementById('form-discount').value = overallDiscount;
                 document.getElementById('form-notes').value    = notes;
+                document.getElementById('form-sale-date').value = document.getElementById('sale-date').value;
+                document.getElementById('form-transaction-reference').value =
+                    document.getElementById('transaction-reference').value;
 
                 // Build cart items in form-items div
                 const itemsContainer = document.getElementById('form-items');

@@ -153,16 +153,22 @@
                 </div>
                 @if($sale->payment_method === 'split')
                     <div style="display:flex;justify-content:space-between;margin-bottom:2px">
-                        <span style="font-size:12px;color:#6b7280">Paid ({{ ucfirst($sale->split_method_1) }})</span>
+                        <span style="font-size:12px;color:#6b7280">
+                            Paid ({{ ucfirst($sale->split_method_1) }}{{ $sale->split_reference_1 ? ' — '.$sale->split_reference_1 : '' }})
+                        </span>
                         <span style="font-size:12px;color:#16a34a;font-weight:500">GHS {{ number_format($sale->split_amount_1, 2) }}</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                        <span style="font-size:12px;color:#6b7280">Paid ({{ ucfirst($sale->split_method_2) }})</span>
+                        <span style="font-size:12px;color:#6b7280">
+                            Paid ({{ ucfirst($sale->split_method_2) }}{{ $sale->split_reference_2 ? ' — '.$sale->split_reference_2 : '' }})
+                        </span>
                         <span style="font-size:12px;color:#16a34a;font-weight:500">GHS {{ number_format($sale->split_amount_2, 2) }}</span>
                     </div>
                 @else
                     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                        <span style="font-size:12px;color:#6b7280">Paid ({{ ucfirst($sale->payment_method) }})</span>
+                        <span style="font-size:12px;color:#6b7280">
+                            Paid ({{ ucfirst($sale->payment_method) }}{{ $sale->transaction_reference ? ' — '.$sale->transaction_reference : '' }})
+                        </span>
                         <span style="font-size:12px;color:#16a34a;font-weight:500">GHS {{ number_format($sale->amount_paid, 2) }}</span>
                     </div>
                 @endif
