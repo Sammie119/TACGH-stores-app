@@ -93,7 +93,7 @@ class PdfController extends Controller
             ->when($request->status,
                 fn($q) => $q->where('status', $request->status))
             ->when($request->payment_method,
-                fn($q) => $q->where('payment_method', $request->payment_method))
+                fn($q) => $q->paymentMethod($request->payment_method))
             ->when($request->user_id,
                 fn($q) => $q->where('user_id', $request->user_id))
             ->whereDate('created_at', '>=', $dateFrom)
@@ -115,6 +115,30 @@ class PdfController extends Controller
 
         $sales = $query->get();
 
+        // Revenue by payment method — attribute split-sale legs to their real
+        // underlying methods using the actual leg amounts (no "split" bucket).
+        // When a payment_method filter is active, only the requested leg of a
+        // split sale is counted here — the sale's other leg (a different real
+        // method the filter didn't ask for) must not leak into the breakdown.
+        $requestedMethod = $request->payment_method;
+        $byPayment = [];
+        foreach ($sales->where('status', 'completed') as $sale) {
+            if ($sale->payment_method === 'split') {
+                if ($sale->split_method_1 && (!$requestedMethod || $sale->split_method_1 === $requestedMethod)) {
+                    $byPayment[$sale->split_method_1]['count'] = ($byPayment[$sale->split_method_1]['count'] ?? 0) + 1;
+                    $byPayment[$sale->split_method_1]['total'] = ($byPayment[$sale->split_method_1]['total'] ?? 0) + $sale->split_amount_1;
+                }
+                if ($sale->split_method_2 && (!$requestedMethod || $sale->split_method_2 === $requestedMethod)) {
+                    $byPayment[$sale->split_method_2]['count'] = ($byPayment[$sale->split_method_2]['count'] ?? 0) + 1;
+                    $byPayment[$sale->split_method_2]['total'] = ($byPayment[$sale->split_method_2]['total'] ?? 0) + $sale->split_amount_2;
+                }
+            } else {
+                $byPayment[$sale->payment_method]['count'] = ($byPayment[$sale->payment_method]['count'] ?? 0) + 1;
+                $byPayment[$sale->payment_method]['total'] = ($byPayment[$sale->payment_method]['total'] ?? 0) + $sale->total_amount;
+            }
+        }
+        $byPayment = collect($byPayment);
+
         $summary = [
             'total_revenue'  => $sales->where('status', 'completed')->sum('total_amount'),
             'total_count'    => $sales->where('status', 'completed')->count(),
@@ -122,11 +146,19 @@ class PdfController extends Controller
             'balance_due'    => $sales->where('status', 'partial')->sum('balance_due'),
         ];
 
+        // Same reasoning as ReportController::sales() — a payment_method filter
+        // must attribute revenue/count via the matched leg amount, not the full
+        // total_amount of every sale that merely touched that method.
+        if ($requestedMethod) {
+            $summary['total_revenue'] = $byPayment[$requestedMethod]['total'] ?? 0;
+            $summary['total_count']   = $byPayment[$requestedMethod]['count'] ?? 0;
+        }
+
         $returnsQuery = ProductReturn::where('status', 'approved')
             ->when(!$isSuperAdmin, fn($q) => $q->where('branch_id', $user->branch_id))
             ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
             ->when($request->payment_method, fn($q) =>
-            $q->whereHas('sale', fn($q2) => $q2->where('payment_method', $request->payment_method)))
+            $q->whereHas('sale', fn($q2) => $q2->paymentMethod($request->payment_method)))
             ->when($request->user_id, fn($q) =>
             $q->whereHas('sale', fn($q2) => $q2->where('user_id', $request->user_id)))
             ->whereDate('created_at', '>=', $dateFrom)
@@ -134,13 +166,6 @@ class PdfController extends Controller
 
         $summary['total_refunds'] = $returnsQuery->sum('refund_amount');
         $summary['net_revenue']   = $summary['total_revenue'] - $summary['total_refunds'];
-
-        $byPayment = $sales->where('status', 'completed')
-            ->groupBy('payment_method')
-            ->map(fn($group) => [
-                'count' => $group->count(),
-                'total' => $group->sum('total_amount'),
-            ]);
 
         $pdf = Pdf::loadView('pdf.sales-report', compact(
             'sales', 'summary', 'byPayment', 'dateFrom', 'dateTo', 'isSuperAdmin'

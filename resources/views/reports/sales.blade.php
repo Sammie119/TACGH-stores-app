@@ -54,7 +54,7 @@
                            text-sm text-gray-700 focus:outline-none
                            focus:ring-2 focus:ring-blue-500">
                     <option value="">All methods</option>
-                    @foreach(['cash','momo','bank','pos','split'] as $m)
+                    @foreach(['cash','momo','bank','pos','complementary'] as $m)
                         <option value="{{ $m }}"
                             {{ request('payment_method') === $m ? 'selected' : '' }}>
                             {{ ucfirst($m) }}

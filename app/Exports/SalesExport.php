@@ -25,7 +25,7 @@ class SalesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             $query->where('branch_id', $this->filters['branch_id']);
         }
         if (!empty($this->filters['payment_method'])) {
-            $query->where('payment_method', $this->filters['payment_method']);
+            $query->paymentMethod($this->filters['payment_method']);
         }
         if (!empty($this->filters['date_from'])) {
             $query->whereDate('created_at', '>=', $this->filters['date_from']);

@@ -35,6 +35,18 @@ class ReportController extends Controller
         return view('reports.index');
     }
 
+    // Shared branch/user/date/status scoping used by the sales-report byPayment aggregate.
+    private function scopeSalesReportFilters($query, Request $request, bool $isSuperAdmin, bool $canViewAll, $user)
+    {
+        return $query
+            ->where('status', 'completed')
+            ->when(!$isSuperAdmin && !$canViewAll, fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->when($request->user_id, fn($q) => $q->where('user_id', $request->user_id))
+            ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+            ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to));
+    }
+
     public function sales(Request $request)
     {
         $user         = auth()->user();
@@ -54,7 +66,7 @@ class ReportController extends Controller
             $query->where('status', $request->status);
         }
         if ($request->payment_method) {
-            $query->where('payment_method', $request->payment_method);
+            $query->paymentMethod($request->payment_method);
         }
         if ($request->date_from) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -68,6 +80,28 @@ class ReportController extends Controller
 
         $sales = $query->latest()->paginate(25)->withQueryString();
 
+        // Sales by payment method — split sales are attributed to each of their
+        // underlying real methods using the actual leg amounts, not lumped under
+        // a "split" bucket.
+        $methods = $request->payment_method ? [$request->payment_method] : ['cash', 'momo', 'bank', 'pos', 'complementary'];
+
+        $byPayment = collect($methods)->map(function ($method) use ($request, $isSuperAdmin, $canViewAll, $user) {
+            $direct = $this->scopeSalesReportFilters(Sale::query(), $request, $isSuperAdmin, $canViewAll, $user)
+                ->where('payment_method', $method);
+            $leg1 = $this->scopeSalesReportFilters(Sale::query(), $request, $isSuperAdmin, $canViewAll, $user)
+                ->where('payment_method', 'split')->where('split_method_1', $method);
+            $leg2 = $this->scopeSalesReportFilters(Sale::query(), $request, $isSuperAdmin, $canViewAll, $user)
+                ->where('payment_method', 'split')->where('split_method_2', $method);
+
+            return (object) [
+                'payment_method' => $method,
+                'count' => (clone $direct)->count() + (clone $leg1)->count() + (clone $leg2)->count(),
+                'total' => (clone $direct)->sum('total_amount')
+                    + (clone $leg1)->sum('split_amount_1')
+                    + (clone $leg2)->sum('split_amount_2'),
+            ];
+        })->filter(fn($row) => $row->count > 0)->values();
+
         // Summary
         $summary = [
             'total_sales'    => (clone $query)->where('status', 'completed')->sum('total_amount'),
@@ -75,6 +109,17 @@ class ReportController extends Controller
             'total_discount' => (clone $query)->where('status', 'completed')->sum('discount'),
             'balance_due'    => (clone $query)->where('status', 'partial')->sum('balance_due'),
         ];
+
+        // When filtering by a real payment method, "Total sales"/"Total count"
+        // must reflect only the amount actually collected via that method
+        // (i.e. match byPayment above) — not the full total_amount of every
+        // sale that merely touched that method as one leg of a split payment,
+        // which would double count a split sale's revenue across, say, both
+        // a Cash filter and a Momo filter.
+        if ($request->payment_method) {
+            $summary['total_sales'] = $byPayment->first()->total ?? 0;
+            $summary['total_count'] = $byPayment->first()->count ?? 0;
+        }
 
         // Approved returns/refunds, scoped by the same filters as the sales above.
         // payment_method and user_id live on the related Sale, not on the return itself.
@@ -85,32 +130,12 @@ class ReportController extends Controller
             ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
             ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
             ->when($request->payment_method, fn($q) =>
-            $q->whereHas('sale', fn($q2) => $q2->where('payment_method', $request->payment_method)))
+            $q->whereHas('sale', fn($q2) => $q2->paymentMethod($request->payment_method)))
             ->when($request->user_id, fn($q) =>
             $q->whereHas('sale', fn($q2) => $q2->where('user_id', $request->user_id)));
 
         $summary['total_refunds'] = (clone $returnsQuery)->sum('refund_amount');
         $summary['net_sales']     = $summary['total_sales'] - $summary['total_refunds'];
-
-        // Sales by payment method
-        $byPayment = Sale::select('payment_method',
-            DB::raw('COUNT(*) as count'),
-            DB::raw('SUM(total_amount) as total'))
-            ->where('status', 'completed')
-            ->when(!$isSuperAdmin && !$canViewAll,
-                fn($q) => $q->where('branch_id', $user->branch_id))
-            ->when($request->branch_id,
-                fn($q) => $q->where('branch_id', $request->branch_id))
-            ->when($request->payment_method,
-                fn($q) => $q->where('payment_method', $request->payment_method))
-            ->when($request->user_id,
-                fn($q) => $q->where('user_id', $request->user_id))
-            ->when($request->date_from,
-                fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-            ->when($request->date_to,
-                fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
-            ->groupBy('payment_method')
-            ->get();
 
         // Top products
         $topProducts = SaleItem::select(
@@ -126,7 +151,7 @@ class ReportController extends Controller
                 ->when($request->branch_id,
                     fn($q) => $q->where('branch_id', $request->branch_id))
                 ->when($request->payment_method,
-                    fn($q) => $q->where('payment_method', $request->payment_method))
+                    fn($q) => $q->paymentMethod($request->payment_method))
                 ->when($request->user_id,
                     fn($q) => $q->where('user_id', $request->user_id))
                 ->when($request->date_from,

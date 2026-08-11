@@ -39,7 +39,7 @@
                 </svg>
             </span>
                 <input type="text" name="search" value="{{ request('search') }}"
-                       placeholder="Search invoice…"
+                       placeholder="Search invoice, customer, amount…"
                        class="h-9 pl-9 pr-3 rounded-lg border border-gray-300 bg-white
                           text-sm text-gray-800 focus:outline-none focus:ring-2
                           focus:ring-blue-500"

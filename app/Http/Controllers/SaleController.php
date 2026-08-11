@@ -47,9 +47,13 @@ class SaleController extends Controller
         }
 
         if ($request->get('search')) {
-            $query->where(fn($q) =>
-            $q->where('invoice_no', 'like', '%' . $request->get('search') . '%')
-            );
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_no', 'like', "%{$search}%")
+                  ->orWhere('walkin_name', 'like', "%{$search}%")
+                  ->orWhere('total_amount', 'like', "%{$search}%")
+                  ->orWhereHas('customer', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+            });
         }
 
         if ($request->get('date_from')) {
@@ -63,7 +67,7 @@ class SaleController extends Controller
         $sales    = $query->latest()->paginate(20)->withQueryString();
         $branches = Branch::where('is_active', true)->get();
         $statuses = ['completed', 'partial', 'credit', 'cancelled'];
-        $paymentMethods = ['cash', 'momo', 'bank', 'pos', 'split'];
+        $paymentMethods = ['cash', 'momo', 'bank', 'pos', 'split', 'complementary'];
 
         // Summary for today
         $todayQuery = Sale::where('status', 'completed')
