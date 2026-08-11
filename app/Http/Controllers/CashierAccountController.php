@@ -21,6 +21,11 @@ class CashierAccountController extends Controller
         $isSuperAdmin = $this->canViewAllBranches();
         $authUser     = auth()->user();
 
+        // Default to this-financial-year-to-date when no filter was submitted;
+        // an explicitly empty param (from the Clear link) leaves it unfiltered.
+        $dateFrom = $request->has('date_from') ? $request->date_from : '2026-07-01';
+        $dateTo   = $request->has('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+
         $users = User::with('branch')
             ->where('is_active', true)
             ->when(!$isSuperAdmin, fn($q) => $q->where('branch_id', $authUser->branch_id))
@@ -28,34 +33,34 @@ class CashierAccountController extends Controller
             ->orderBy('name')
             ->get();
 
-        $accounts = $users->map(function ($cashier) use ($request) {
+        $accounts = $users->map(function ($cashier) use ($dateFrom, $dateTo) {
             $salesQ = Sale::where('user_id', $cashier->id)
                 ->where('payment_method', 'cash')
                 ->where('status', 'completed')
-                ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-                ->when($request->date_to,   fn($q) => $q->whereDate('created_at', '<=', $request->date_to));
+                ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('created_at', '<=', $dateTo));
 
             $splitCash1Q = Sale::where('user_id', $cashier->id)
                 ->where('payment_method', 'split')->where('split_method_1', 'cash')
                 ->where('status', 'completed')
-                ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-                ->when($request->date_to,   fn($q) => $q->whereDate('created_at', '<=', $request->date_to));
+                ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('created_at', '<=', $dateTo));
 
             $splitCash2Q = Sale::where('user_id', $cashier->id)
                 ->where('payment_method', 'split')->where('split_method_2', 'cash')
                 ->where('status', 'completed')
-                ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-                ->when($request->date_to,   fn($q) => $q->whereDate('created_at', '<=', $request->date_to));
+                ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('created_at', '<=', $dateTo));
 
             $consignmentsQ = ConsignmentPayment::where('paid_by', $cashier->id)
                 ->where('payment_method', 'cash')
-                ->when($request->date_from, fn($q) => $q->whereDate('payment_date', '>=', $request->date_from))
-                ->when($request->date_to,   fn($q) => $q->whereDate('payment_date', '<=', $request->date_to));
+                ->when($dateFrom, fn($q) => $q->whereDate('payment_date', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('payment_date', '<=', $dateTo));
 
             $depositsQ = BankDeposit::where('deposited_by', $cashier->id)
                 ->where('status', 'verified')
-                ->when($request->date_from, fn($q) => $q->whereDate('deposit_date', '>=', $request->date_from))
-                ->when($request->date_to,   fn($q) => $q->whereDate('deposit_date', '<=', $request->date_to));
+                ->when($dateFrom, fn($q) => $q->whereDate('deposit_date', '>=', $dateFrom))
+                ->when($dateTo,   fn($q) => $q->whereDate('deposit_date', '<=', $dateTo));
 
             $cashSales        = (clone $salesQ)->sum('amount_paid')
                 + (clone $splitCash1Q)->sum('split_amount_1')
@@ -94,7 +99,7 @@ class CashierAccountController extends Controller
         ];
 
         return view('cashier-accounts.index', compact(
-            'accounts', 'totals', 'branches', 'isSuperAdmin'
+            'accounts', 'totals', 'branches', 'isSuperAdmin', 'dateFrom', 'dateTo'
         ));
     }
 
@@ -109,6 +114,11 @@ class CashierAccountController extends Controller
             abort(403);
         }
 
+        // Same default as the index page, so this page behaves consistently
+        // whether reached via "View details" or visited/bookmarked directly.
+        $dateFrom = $request->has('date_from') ? $request->date_from : '2026-07-01';
+        $dateTo   = $request->has('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+
         $sales = Sale::where('user_id', $user->id)
             ->where('status', 'completed')
             ->where(fn($q) => $q
@@ -121,24 +131,24 @@ class CashierAccountController extends Controller
                     )
                 )
             )
-            ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-            ->when($request->date_to,   fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+            ->when($dateTo,   fn($q) => $q->whereDate('created_at', '<=', $dateTo))
             ->latest()
             ->paginate(20, ['*'], 'sales_page')
             ->withQueryString();
 
         $consignmentPayments = ConsignmentPayment::where('paid_by', $user->id)
             ->where('payment_method', 'cash')
-            ->when($request->date_from, fn($q) => $q->whereDate('payment_date', '>=', $request->date_from))
-            ->when($request->date_to,   fn($q) => $q->whereDate('payment_date', '<=', $request->date_to))
+            ->when($dateFrom, fn($q) => $q->whereDate('payment_date', '>=', $dateFrom))
+            ->when($dateTo,   fn($q) => $q->whereDate('payment_date', '<=', $dateTo))
             ->with('consignment')
             ->latest('payment_date')
             ->paginate(20, ['*'], 'cpay_page')
             ->withQueryString();
 
         $deposits = BankDeposit::where('deposited_by', $user->id)
-            ->when($request->date_from, fn($q) => $q->whereDate('deposit_date', '>=', $request->date_from))
-            ->when($request->date_to,   fn($q) => $q->whereDate('deposit_date', '<=', $request->date_to))
+            ->when($dateFrom, fn($q) => $q->whereDate('deposit_date', '>=', $dateFrom))
+            ->when($dateTo,   fn($q) => $q->whereDate('deposit_date', '<=', $dateTo))
             ->latest()
             ->paginate(20, ['*'], 'dep_page')
             ->withQueryString();
@@ -153,7 +163,8 @@ class CashierAccountController extends Controller
 
         return view('cashier-accounts.show', compact(
             'user', 'sales', 'consignmentPayments', 'deposits',
-            'cashSales', 'cashConsignments', 'verifiedDeposits', 'outstanding', 'isSuperAdmin'
+            'cashSales', 'cashConsignments', 'verifiedDeposits', 'outstanding', 'isSuperAdmin',
+            'dateFrom', 'dateTo'
         ));
     }
 }

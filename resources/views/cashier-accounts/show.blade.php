@@ -18,6 +18,16 @@
         </a>
     </div>
 
+    <p class="text-xs text-gray-400 mb-4">
+        @if($dateFrom || $dateTo)
+            Showing transactions
+            @if($dateFrom) from {{ \Carbon\Carbon::parse($dateFrom)->format('d M Y') }} @endif
+            @if($dateTo) to {{ \Carbon\Carbon::parse($dateTo)->format('d M Y') }} @endif
+        @else
+            Showing all-time transactions
+        @endif
+    </p>
+
     {{-- Summary cards --}}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
         <div class="bg-white border border-gray-200 rounded-xl p-5">

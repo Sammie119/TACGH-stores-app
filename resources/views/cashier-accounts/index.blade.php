@@ -30,14 +30,14 @@
 
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">From</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}"
+                <input type="date" name="date_from" value="{{ $dateFrom }}"
                        class="h-9 px-3 rounded-lg border border-gray-300 bg-white
                               text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">To</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}"
+                <input type="date" name="date_to" value="{{ $dateTo }}"
                        class="h-9 px-3 rounded-lg border border-gray-300 bg-white
                               text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
@@ -49,7 +49,7 @@
             </button>
 
             @if(request()->hasAny(['branch_id', 'date_from', 'date_to']))
-                <a href="{{ route('cashier-accounts.index') }}"
+                <a href="{{ route('cashier-accounts.index', array_filter(['branch_id' => request('branch_id')]) + ['date_from' => '', 'date_to' => '']) }}"
                    class="h-9 px-4 bg-white border border-gray-300 hover:bg-gray-50
                           text-gray-600 text-sm font-medium rounded-lg transition-colors"
                    style="display:inline-flex;align-items:center">
@@ -150,7 +150,7 @@
                         @endif
                     </td>
                     <td class="px-5 py-3 text-right">
-                        <a href="{{ route('cashier-accounts.show', $account['cashier']) }}"
+                        <a href="{{ route('cashier-accounts.show', ['user' => $account['cashier']->id, 'date_from' => $dateFrom, 'date_to' => $dateTo]) }}"
                            class="text-xs font-medium text-blue-600 hover:underline">
                             View details
                         </a>
