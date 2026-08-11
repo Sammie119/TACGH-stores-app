@@ -133,90 +133,6 @@
         </table>
     @endif
 
-    {{-- Sales history --}}
-    @if($salesData->count() > 0)
-        <div style="font-size:10px;font-weight:bold;color:#374151;
-            text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">
-            Sales history ({{ $salesData->count() }} transactions)
-        </div>
-        <table style="margin-bottom:16px">
-            <thead>
-            <tr>
-                <th style="text-align:left">Invoice</th>
-                <th style="text-align:left">Branch</th>
-                <th style="text-align:left">Cashier</th>
-                <th style="text-align:right">Qty</th>
-                <th style="text-align:right">Unit price</th>
-                <th style="text-align:right">Subtotal</th>
-                <th style="text-align:left">Date</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach($salesData as $item)
-                <tr>
-                    <td class="monospace text-sm">{{ $item->sale->invoice_no }}</td>
-                    <td>{{ $item->sale->branch?->name }}</td>
-                    <td>{{ $item->sale->user?->name }}</td>
-                    <td class="text-right font-bold">{{ number_format($item->quantity, 0) }}</td>
-                    <td class="text-right">GHS {{ number_format($item->unit_price, 2) }}</td>
-                    <td class="text-right font-bold text-green">
-                        GHS {{ number_format($item->subtotal, 2) }}
-                    </td>
-                    <td>{{ $item->sale->created_at->format('d M Y') }}</td>
-                </tr>
-            @endforeach
-            </tbody>
-            <tfoot>
-            <tr>
-                <td colspan="3" class="text-right">Total</td>
-                <td class="text-right">{{ number_format($salesData->sum('quantity'), 0) }}</td>
-                <td></td>
-                <td class="text-right text-green">
-                    GHS {{ number_format($salesData->sum('subtotal'), 2) }}
-                </td>
-                <td></td>
-            </tr>
-            </tfoot>
-        </table>
-    @endif
-
-    {{-- Returns --}}
-    @if($returnsData->count() > 0)
-        <div style="font-size:10px;font-weight:bold;color:#374151;
-            text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">
-            Returns ({{ $returnsData->count() }})
-        </div>
-        <table style="margin-bottom:16px">
-            <thead>
-            <tr>
-                <th style="text-align:left">Invoice</th>
-                <th style="text-align:left">Type</th>
-                <th style="text-align:right">Qty</th>
-                <th style="text-align:right">Refund</th>
-                <th style="text-align:left">Reason</th>
-                <th style="text-align:left">Date</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach($returnsData as $ret)
-                @php
-                    $bc = ['refund'=>'badge-green','exchange'=>'badge-blue','damaged'=>'badge-red'][$ret->type] ?? 'badge-gray';
-                @endphp
-                <tr>
-                    <td class="monospace text-sm">{{ $ret->sale?->invoice_no }}</td>
-                    <td><span class="badge {{ $bc }}">{{ ucfirst($ret->type) }}</span></td>
-                    <td class="text-right">{{ number_format($ret->quantity, 0) }}</td>
-                    <td class="text-right text-red">
-                        GHS {{ number_format($ret->refund_amount, 2) }}
-                    </td>
-                    <td class="text-gray">{{ Str::limit($ret->reason ?? '—', 30) }}</td>
-                    <td>{{ $ret->created_at->format('d M Y') }}</td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-    @endif
-
     {{-- Purchases --}}
     @if($purchasesData->count() > 0)
         <div style="font-size:10px;font-weight:bold;color:#374151;
@@ -259,7 +175,7 @@
             text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">
             Stock movements ({{ $movements->count() }})
         </div>
-        <table>
+        <table style="margin-bottom:16px">
             <thead>
             <tr>
                 <th style="text-align:left">Type</th>
@@ -295,6 +211,90 @@
                 </tr>
             @endforeach
             </tbody>
+        </table>
+    @endif
+
+    {{-- Returns --}}
+    @if($returnsData->count() > 0)
+        <div style="font-size:10px;font-weight:bold;color:#374151;
+            text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">
+            Returns ({{ $returnsData->count() }})
+        </div>
+        <table style="margin-bottom:16px">
+            <thead>
+            <tr>
+                <th style="text-align:left">Invoice</th>
+                <th style="text-align:left">Type</th>
+                <th style="text-align:right">Qty</th>
+                <th style="text-align:right">Refund</th>
+                <th style="text-align:left">Reason</th>
+                <th style="text-align:left">Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($returnsData as $ret)
+                @php
+                    $bc = ['refund'=>'badge-green','exchange'=>'badge-blue','damaged'=>'badge-red'][$ret->type] ?? 'badge-gray';
+                @endphp
+                <tr>
+                    <td class="monospace text-sm">{{ $ret->sale?->invoice_no }}</td>
+                    <td><span class="badge {{ $bc }}">{{ ucfirst($ret->type) }}</span></td>
+                    <td class="text-right">{{ number_format($ret->quantity, 0) }}</td>
+                    <td class="text-right text-red">
+                        GHS {{ number_format($ret->refund_amount, 2) }}
+                    </td>
+                    <td class="text-gray">{{ Str::limit($ret->reason ?? '—', 30) }}</td>
+                    <td>{{ $ret->created_at->format('d M Y') }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    {{-- Sales history --}}
+    @if($salesData->count() > 0)
+        <div style="font-size:10px;font-weight:bold;color:#374151;
+            text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">
+            Sales history ({{ $salesData->count() }} transactions)
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th style="text-align:left">Invoice</th>
+                <th style="text-align:left">Branch</th>
+                <th style="text-align:left">Cashier</th>
+                <th style="text-align:right">Qty</th>
+                <th style="text-align:right">Unit price</th>
+                <th style="text-align:right">Subtotal</th>
+                <th style="text-align:left">Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($salesData as $item)
+                <tr>
+                    <td class="monospace text-sm">{{ $item->sale->invoice_no }}</td>
+                    <td>{{ $item->sale->branch?->name }}</td>
+                    <td>{{ $item->sale->user?->name }}</td>
+                    <td class="text-right font-bold">{{ number_format($item->quantity, 0) }}</td>
+                    <td class="text-right">GHS {{ number_format($item->unit_price, 2) }}</td>
+                    <td class="text-right font-bold text-green">
+                        GHS {{ number_format($item->subtotal, 2) }}
+                    </td>
+                    <td>{{ $item->sale->created_at->format('d M Y') }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="3" class="text-right">Total</td>
+                <td class="text-right">{{ number_format($salesData->sum('quantity'), 0) }}</td>
+                <td></td>
+                <td class="text-right text-green">
+                    GHS {{ number_format($salesData->sum('subtotal'), 2) }}
+                </td>
+                <td></td>
+            </tr>
+            </tfoot>
         </table>
     @endif
 
