@@ -21,7 +21,10 @@ use App\Exports\InventoryExport;
 use App\Exports\ConsignmentExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\PurchaseOrderItem;
+use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use App\Models\Consignment;
+use App\Exports\PurchaseExport;
 
 class ReportController extends Controller
 {
@@ -713,6 +716,74 @@ class ReportController extends Controller
         return Excel::download(
             new ConsignmentExport($request->only(['branch_id', 'status', 'date_from', 'date_to'])),
             'consignment-report-' . now()->format('Y-m-d') . '.xlsx'
+        );
+    }
+
+    // ── Purchases report ──────────────────────────────────────────
+    public function purchases(Request $request)
+    {
+        $user         = auth()->user();
+        $isSuperAdmin = $this->canViewAllBranches();
+
+        $query = PurchaseOrder::with(['supplier', 'branch', 'createdBy'])
+            ->when(!$isSuperAdmin, fn($q) => $q->where('branch_id', $user->branch_id));
+
+        if ($request->branch_id)   { $query->where('branch_id', $request->branch_id); }
+        if ($request->supplier_id) { $query->where('supplier_id', $request->supplier_id); }
+        if ($request->status)      { $query->where('status', $request->status); }
+        if ($request->date_from)   { $query->whereDate('order_date', '>=', $request->date_from); }
+        if ($request->date_to)     { $query->whereDate('order_date', '<=', $request->date_to); }
+
+        $purchaseOrders = $query->latest()->paginate(25)->withQueryString();
+
+        $summary = [
+            'total_amount' => (clone $query)->sum('total_amount'),
+            'amount_paid'  => (clone $query)->sum('amount_paid'),
+            'balance_due'  => (clone $query)->sum('balance_due'),
+            'total_count'  => (clone $query)->count(),
+        ];
+
+        $byStatus = PurchaseOrder::select('status',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(total_amount) as total_amount'),
+                DB::raw('SUM(balance_due) as balance_due'))
+            ->when(!$isSuperAdmin, fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->when($request->supplier_id, fn($q) => $q->where('supplier_id', $request->supplier_id))
+            ->when($request->date_from, fn($q) => $q->whereDate('order_date', '>=', $request->date_from))
+            ->when($request->date_to,   fn($q) => $q->whereDate('order_date', '<=', $request->date_to))
+            ->groupBy('status')
+            ->get();
+
+        $topSuppliers = PurchaseOrder::select('supplier_id',
+                DB::raw('SUM(balance_due) as total_owed'),
+                DB::raw('COUNT(*) as order_count'))
+            ->with('supplier')
+            ->whereNotIn('status', ['draft', 'cancelled'])
+            ->where('balance_due', '>', 0)
+            ->when(!$isSuperAdmin, fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
+            ->groupBy('supplier_id')
+            ->orderByDesc('total_owed')
+            ->take(10)
+            ->get();
+
+        $branches  = Branch::where('is_active', true)->get();
+        $suppliers = Supplier::where('is_active', true)->get();
+        $statuses  = ['draft', 'pending', 'approved', 'ordered', 'partial', 'received', 'cancelled'];
+
+        return view('reports.purchases', compact(
+            'purchaseOrders', 'summary', 'byStatus', 'topSuppliers',
+            'branches', 'suppliers', 'statuses', 'isSuperAdmin'
+        ));
+    }
+
+    public function exportPurchases(Request $request)
+    {
+        $this->authorize('export reports');
+        return Excel::download(
+            new PurchaseExport($request->only(['branch_id', 'supplier_id', 'status', 'date_from', 'date_to'])),
+            'purchase-report-' . now()->format('Y-m-d') . '.xlsx'
         );
     }
 }

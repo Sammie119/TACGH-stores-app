@@ -134,6 +134,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports/stock-balance',    [ReportController::class, 'stockBalance'])->name('reports.stock-balance');
     Route::get('reports/consignments',        [ReportController::class, 'consignments'])->name('reports.consignments');
     Route::get('reports/export/consignments', [ReportController::class, 'exportConsignments'])->name('reports.export.consignments');
+    Route::get('reports/purchases',           [ReportController::class, 'purchases'])->name('reports.purchases');
+    Route::get('reports/export/purchases',    [ReportController::class, 'exportPurchases'])->name('reports.export.purchases');
 
     // Notifications
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -190,6 +192,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('consignment-payment/{payment}',  [PdfController::class, 'consignmentPaymentReceipt'])->name('consignment-payment');
         Route::get('consignment-report',             [PdfController::class, 'consignmentReport'])->name('consignment-report');
         Route::get('consignment-invoice/{consignment}', [PdfController::class, 'consignmentInvoice'])->name('consignment-invoice');
+        Route::get('purchases-report',               [PdfController::class, 'purchasesReport'])->name('purchases-report');
     });
 
     // In routes/web.php — inside auth middleware group

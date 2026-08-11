@@ -195,6 +195,27 @@
                     </div>
                 </div>
             </a>
+            {{-- Purchases Report --}}
+            <a href="{{ route('reports.purchases') }}"
+               style="display:block;text-decoration:none"
+               class="bg-white border border-gray-200 rounded-xl p-6 hover:border-blue-300
+                      hover:shadow-sm transition-all">
+                <div style="display:flex;align-items:flex-start;gap:14px">
+                    <div style="width:44px;height:44px;border-radius:10px;background:#eef2ff;
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 mb-1">Purchases report</p>
+                        <p class="text-sm text-gray-500">
+                            Purchase orders, supplier spend, and outstanding balances
+                        </p>
+                    </div>
+                </div>
+            </a>
 
         @endcan
 

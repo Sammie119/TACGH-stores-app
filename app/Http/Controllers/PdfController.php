@@ -559,6 +559,55 @@ class PdfController extends Controller
         return $pdf->stream('consignment-report-' . now()->format('Y-m-d') . '.pdf');
     }
 
+    // ── Purchases report PDF ────────────────────────────────────────
+    public function purchasesReport(Request $request)
+    {
+        $user         = auth()->user();
+        $isSuperAdmin = $this->canViewAllBranches();
+
+        $purchaseOrders = PurchaseOrder::with(['supplier', 'branch', 'createdBy'])
+            ->when(!$isSuperAdmin,
+                fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($request->branch_id,
+                fn($q) => $q->where('branch_id', $request->branch_id))
+            ->when($request->supplier_id,
+                fn($q) => $q->where('supplier_id', $request->supplier_id))
+            ->when($request->status,
+                fn($q) => $q->where('status', $request->status))
+            ->when($request->date_from,
+                fn($q) => $q->whereDate('order_date', '>=', $request->date_from))
+            ->when($request->date_to,
+                fn($q) => $q->whereDate('order_date', '<=', $request->date_to))
+            ->latest()
+            ->get();
+
+        $summary = [
+            'total_amount' => $purchaseOrders->sum('total_amount'),
+            'amount_paid'  => $purchaseOrders->sum('amount_paid'),
+            'balance_due'  => $purchaseOrders->sum('balance_due'),
+            'total_count'  => $purchaseOrders->count(),
+        ];
+
+        $byStatus = $purchaseOrders->groupBy('status')->map(fn($group) => [
+            'count'        => $group->count(),
+            'total_amount' => $group->sum('total_amount'),
+            'balance_due'  => $group->sum('balance_due'),
+        ]);
+
+        $dateFrom = $request->date_from;
+        $dateTo   = $request->date_to;
+
+        $pdf = Pdf::loadView('pdf.purchases-report', compact(
+            'purchaseOrders', 'summary', 'byStatus', 'dateFrom', 'dateTo', 'isSuperAdmin'
+        ))->setPaper('a4', 'landscape')
+          ->setOptions([
+              'isHtml5ParserEnabled' => true,
+              'defaultFont'          => 'sans-serif',
+          ]);
+
+        return $pdf->stream('purchases-report-' . now()->format('Y-m-d') . '.pdf');
+    }
+
     // ── Consignment invoice PDF ────────────────────────────────────
     public function consignmentInvoice(Consignment $consignment)
     {
