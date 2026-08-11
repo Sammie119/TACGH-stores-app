@@ -163,30 +163,25 @@
                     <div class="po-item-row"
                          style="display:grid;grid-template-columns:1fr 120px 130px 120px 40px;
                             gap:12px;align-items:center">
-                        <div class="relative">
-                            <select name="items[{{ $i }}][product_id]"
-                                    onchange="updateSubtotal(this)"
-                                    class="w-full h-10 px-3 pr-8 rounded-lg border
-                                       border-gray-300 bg-white text-sm text-gray-800
-                                       focus:outline-none focus:ring-2
-                                       focus:ring-blue-500 appearance-none">
-                                <option value="">— Select product —</option>
-                                @foreach($products as $product)
-                                    <option value="{{ $product->id }}"
-                                            data-cost="{{ $product->cost_price }}"
-                                        {{ $item->product_id == $product->id ? 'selected' : '' }}>
-                                        {{ $product->name }} ({{ $product->sku }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <span class="absolute inset-y-0 right-3 flex items-center
-                                     pointer-events-none text-gray-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                 viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </span>
+                        <div class="relative po-product-field">
+                            <input type="text"
+                                   class="po-product-search w-full h-10 px-3 rounded-lg border
+                                      border-gray-300 bg-white text-sm text-gray-800
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Search product…"
+                                   autocomplete="off"
+                                   value="{{ $item->product ? $item->product->name.' ('.$item->product->sku.')' : '' }}"
+                                   oninput="searchPoProduct(this)"
+                                   onkeydown="handlePoProductKey(event, this)">
+                            <input type="hidden" name="items[{{ $i }}][product_id]"
+                                   class="po-product-id"
+                                   value="{{ $item->product_id }}">
+                            <div class="po-product-results"
+                                 style="display:none;position:absolute;top:calc(100% + 4px);
+                                        left:0;right:0;z-index:20;background:#fff;
+                                        border:1px solid #e5e7eb;border-radius:8px;
+                                        box-shadow:0 4px 12px rgba(0,0,0,.08);
+                                        max-height:240px;overflow-y:auto"></div>
                         </div>
                         <input type="number" name="items[{{ $i }}][quantity]"
                                value="{{ $item->quantity_ordered }}"
@@ -227,29 +222,23 @@
                 <div class="po-item-row"
                      style="display:grid;grid-template-columns:1fr 120px 130px 120px 40px;
                         gap:12px;align-items:center">
-                    <div class="relative">
-                        <select name="items[0][product_id]"
-                                onchange="updateSubtotal(this)"
-                                class="w-full h-10 px-3 pr-8 rounded-lg border
-                                   border-gray-300 bg-white text-sm text-gray-800
-                                   focus:outline-none focus:ring-2
-                                   focus:ring-blue-500 appearance-none">
-                            <option value="">— Select product —</option>
-                            @foreach($products as $product)
-                                <option value="{{ $product->id }}"
-                                        data-cost="{{ $product->cost_price }}">
-                                    {{ $product->name }} ({{ $product->sku }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <span class="absolute inset-y-0 right-3 flex items-center
-                                 pointer-events-none text-gray-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                             viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </span>
+                    <div class="relative po-product-field">
+                        <input type="text"
+                               class="po-product-search w-full h-10 px-3 rounded-lg border
+                                  border-gray-300 bg-white text-sm text-gray-800
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Search product…"
+                               autocomplete="off"
+                               oninput="searchPoProduct(this)"
+                               onkeydown="handlePoProductKey(event, this)">
+                        <input type="hidden" name="items[0][product_id]"
+                               class="po-product-id" value="">
+                        <div class="po-product-results"
+                             style="display:none;position:absolute;top:calc(100% + 4px);
+                                    left:0;right:0;z-index:20;background:#fff;
+                                    border:1px solid #e5e7eb;border-radius:8px;
+                                    box-shadow:0 4px 12px rgba(0,0,0,.08);
+                                    max-height:240px;overflow-y:auto"></div>
                     </div>
                     <input type="number" name="items[0][quantity]"
                            min="0.01" step="0.01" placeholder="0"
@@ -357,14 +346,115 @@
     <script>
         let poItemCount = {{ $purchaseOrder ? $purchaseOrder->items->count() : 1 }};
 
-        const poProductOptions = `
-    <option value="">— Select product —</option>
-    @foreach($products as $product)
-        <option value="{{ $product->id }}" data-cost="{{ $product->cost_price }}">
-            {{ addslashes($product->name) }} ({{ $product->sku }})
-        </option>
-    @endforeach
-        `;
+        @php
+            $poProductsData = $products->map(fn($product) => [
+                'id'         => $product->id,
+                'name'       => $product->name,
+                'sku'        => $product->sku,
+                'cost_price' => $product->cost_price,
+            ])->values();
+        @endphp
+        const poProducts = @json($poProductsData);
+
+        function searchPoProduct(input) {
+            const row    = input.closest('.po-item-row');
+            const hidden = row.querySelector('.po-product-id');
+            const box    = row.querySelector('.po-product-results');
+            const q      = input.value.trim().toLowerCase();
+
+            // Typing invalidates any previous selection until a result is re-picked.
+            hidden.value = '';
+
+            if (!q) {
+                box.style.display = 'none';
+                row._poIndex = -1;
+                return;
+            }
+
+            const matches = poProducts.filter(p =>
+                p.name.toLowerCase().includes(q) || (p.sku ?? '').toLowerCase().includes(q)
+            ).slice(0, 8);
+
+            if (!matches.length) {
+                box.innerHTML = `
+            <div style="padding:10px 14px;font-size:13px;color:#9ca3af">
+                No products found
+            </div>`;
+                box.style.display = 'block';
+                row._poIndex = -1;
+                return;
+            }
+
+            box.innerHTML = matches.map((p, i) => `
+            <div class="po-result-item" data-index="${i}"
+                 data-id="${p.id}" data-name="${p.name.replace(/"/g, '&quot;')}"
+                 data-sku="${(p.sku ?? '').replace(/"/g, '&quot;')}" data-cost="${p.cost_price}"
+                 onclick="selectPoProduct(this)"
+                 style="padding:10px 14px;font-size:13px;color:#111827;cursor:pointer;
+                        border-bottom:1px solid #f9fafb"
+                 onmouseover="this.style.background='#f0f9ff'"
+                 onmouseout="this.style.background='#fff'">
+                ${p.name} <span style="color:#9ca3af">(${p.sku ?? ''})</span>
+            </div>`).join('');
+
+            box.style.display = 'block';
+            row._poIndex = -1;
+        }
+
+        function handlePoProductKey(e, input) {
+            const row   = input.closest('.po-item-row');
+            const box   = row.querySelector('.po-product-results');
+            const items = box.querySelectorAll('.po-result-item');
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                row._poIndex = Math.min((row._poIndex ?? -1) + 1, items.length - 1);
+                highlightPoResult(items, row._poIndex);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                row._poIndex = Math.max((row._poIndex ?? -1) - 1, -1);
+                highlightPoResult(items, row._poIndex);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const idx = row._poIndex ?? -1;
+                if (idx >= 0 && items[idx]) {
+                    items[idx].click();
+                } else if (items.length === 1) {
+                    items[0].click();
+                }
+            } else if (e.key === 'Escape') {
+                box.style.display = 'none';
+            }
+        }
+
+        function highlightPoResult(items, idx) {
+            items.forEach((el, i) => {
+                el.style.background = i === idx ? '#eff6ff' : '#fff';
+            });
+        }
+
+        function selectPoProduct(el) {
+            const row    = el.closest('.po-item-row');
+            const input  = row.querySelector('.po-product-search');
+            const hidden = row.querySelector('.po-product-id');
+            const box    = row.querySelector('.po-product-results');
+
+            input.value        = `${el.dataset.name} (${el.dataset.sku})`;
+            hidden.value       = el.dataset.id;
+            hidden.dataset.cost = el.dataset.cost;
+            box.style.display  = 'none';
+
+            updateSubtotal(hidden);
+        }
+
+        document.addEventListener('click', function (e) {
+            document.querySelectorAll('.po-product-results').forEach(box => {
+                const field = box.closest('.po-product-field');
+                if (field && !field.contains(e.target)) {
+                    box.style.display = 'none';
+                }
+            });
+        });
 
         function addPoItem() {
             const container = document.getElementById('po-items-container');
@@ -373,21 +463,19 @@
             div.style.cssText = 'display:grid;grid-template-columns:1fr 120px 130px 120px 40px;gap:12px;align-items:center';
 
             div.innerHTML = `
-        <div style="position:relative">
-            <select name="items[${poItemCount}][product_id]"
-                    onchange="updateSubtotal(this)"
-                    style="width:100%;height:40px;padding:0 32px 0 12px;
-                           border:1px solid #d1d5db;border-radius:8px;font-size:14px;
-                           color:#111827;background:#fff;outline:none;appearance:none">
-                ${poProductOptions}
-            </select>
-            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                         color:#9ca3af;pointer-events:none;display:flex">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-            </span>
+        <div class="po-product-field" style="position:relative">
+            <input type="text" class="po-product-search"
+                   placeholder="Search product…" autocomplete="off"
+                   oninput="searchPoProduct(this)"
+                   onkeydown="handlePoProductKey(event, this)"
+                   style="width:100%;height:40px;padding:0 12px;box-sizing:border-box;
+                          border:1px solid #d1d5db;border-radius:8px;font-size:14px;
+                          color:#111827;background:#fff;outline:none">
+            <input type="hidden" name="items[${poItemCount}][product_id]" class="po-product-id" value="">
+            <div class="po-product-results"
+                 style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
+                        z-index:20;background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+                        box-shadow:0 4px 12px rgba(0,0,0,.08);max-height:240px;overflow-y:auto"></div>
         </div>
         <input type="number" name="items[${poItemCount}][quantity]"
                min="0.01" step="0.01" placeholder="0"
@@ -432,17 +520,15 @@
         }
 
         function updateSubtotal(input) {
-            const row      = input.closest('.po-item-row');
-            const select   = row.querySelector('select');
-            const qtyInput = row.querySelector('input[name*="quantity"]');
-            const costInput= row.querySelector('input[name*="unit_cost"]');
-            const display  = row.querySelector('.subtotal-display');
+            const row       = input.closest('.po-item-row');
+            const productId = row.querySelector('.po-product-id');
+            const qtyInput  = row.querySelector('input[name*="quantity"]');
+            const costInput = row.querySelector('input[name*="unit_cost"]');
+            const display   = row.querySelector('.subtotal-display');
 
             // Auto-fill cost from product data
-            if (input.tagName === 'SELECT') {
-                const option = input.options[input.selectedIndex];
-                const cost   = option?.dataset.cost;
-                if (cost && costInput) costInput.value = parseFloat(cost).toFixed(2);
+            if (input === productId && productId.dataset.cost) {
+                costInput.value = parseFloat(productId.dataset.cost).toFixed(2);
             }
 
             const qty  = parseFloat(qtyInput?.value) || 0;
