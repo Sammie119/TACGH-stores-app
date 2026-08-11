@@ -35,9 +35,7 @@ class ProductCategoryController extends Controller
 
     public function create()
     {
-        // Only root categories can be parents
-        $parentCategories = ProductCategory::whereNull('parent_id')
-            ->where('is_active', true)
+        $parentCategories = ProductCategory::where('is_active', true)
             ->orderBy('name')
             ->get();
 
@@ -52,16 +50,6 @@ class ProductCategoryController extends Controller
             'description' => 'nullable|string|max:500',
             'is_active'   => 'boolean',
         ]);
-
-        // Prevent making a child a parent of another child
-        if ($request->parent_id) {
-            $parent = ProductCategory::find($request->parent_id);
-            if ($parent && !is_null($parent->parent_id)) {
-                return back()->with('error',
-                    'Only top-level categories can be parent categories.')
-                    ->withInput();
-            }
-        }
 
         $category = ProductCategory::create([
             'name'        => $request->name,
@@ -81,10 +69,10 @@ class ProductCategoryController extends Controller
 
     public function edit(ProductCategory $category)
     {
-        // Only root categories as parent options, excluding self
-        $parentCategories = ProductCategory::whereNull('parent_id')
-            ->where('is_active', true)
-            ->where('id', '!=', $category->id)
+        // Exclude the category itself and its own descendants — a category
+        // can't become a child of something beneath it in its own tree.
+        $parentCategories = ProductCategory::where('is_active', true)
+            ->whereNotIn('id', $category->getAllDescendantIds())
             ->orderBy('name')
             ->get();
 
@@ -100,24 +88,14 @@ class ProductCategoryController extends Controller
             'is_active'   => 'boolean',
         ]);
 
-        // Prevent circular reference
-        if ($request->parent_id == $category->id) {
+        // Prevent circular reference: the requested parent can't be the
+        // category itself or any of its own descendants.
+        if ($request->parent_id && in_array($request->parent_id, $category->getAllDescendantIds())) {
             return back()->with('error',
-                'A category cannot be its own parent.')
+                "Cannot set this category's own descendant as its parent — that would create a circular reference.")
                 ->withInput();
         }
 
-        // Prevent making a child a parent
-        if ($request->parent_id) {
-            $parent = ProductCategory::find($request->parent_id);
-            if ($parent && !is_null($parent->parent_id)) {
-                return back()->with('error',
-                    'Only top-level categories can be parent categories.')
-                    ->withInput();
-            }
-        }
-
-        // If changing to a parent, remove its own parent_id
         $category->update([
             'name'        => $request->name,
             'parent_id'   => $request->parent_id ?: null,

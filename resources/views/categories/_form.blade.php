@@ -37,7 +37,7 @@
                             @forelse($parentCategories as $parent)
                                 <option value="{{ $parent?->id }}"
                                     {{ old('parent_id', $category?->parent_id) == $parent?->id ? 'selected' : '' }}>
-                                    {{ $parent?->name }}
+                                    {{ $parent?->full_path }}
                                 </option>
                             @empty
                                 <option value="">— Top level category —</option>
