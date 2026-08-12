@@ -1,3 +1,5 @@
+docker exec -it tacgh-store-nginx sh
+
 # Seed Permissions
 php artisan db:seed --class=RolesAndPermissionsSeeder
 
