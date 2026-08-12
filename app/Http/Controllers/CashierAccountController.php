@@ -9,6 +9,7 @@ use App\Models\Sale;
 use App\Models\User;
 use App\Traits\HasBranchAccess;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CashierAccountController extends Controller
 {
@@ -62,7 +63,12 @@ class CashierAccountController extends Controller
                 ->when($dateFrom, fn($q) => $q->whereDate('deposit_date', '>=', $dateFrom))
                 ->when($dateTo,   fn($q) => $q->whereDate('deposit_date', '<=', $dateTo));
 
-            $cashSales        = (clone $salesQ)->sum('amount_paid')
+            // Cash actually retained, not cash tendered: amount_paid can exceed
+            // total_amount when change was given back, which would otherwise
+            // overstate what the cashier collected. (total_amount - balance_due)
+            // equals total_amount when fully paid (change already excluded) and
+            // equals amount_paid when a balance is still owed (no change given).
+            $cashSales        = (clone $salesQ)->sum(DB::raw('total_amount - balance_due'))
                 + (clone $splitCash1Q)->sum('split_amount_1')
                 + (clone $splitCash2Q)->sum('split_amount_2');
             $salesCount       = (clone $salesQ)->count()
@@ -153,8 +159,9 @@ class CashierAccountController extends Controller
             ->paginate(20, ['*'], 'dep_page')
             ->withQueryString();
 
-        // All-time totals (unaffected by date filter)
-        $cashSales        = Sale::where('user_id', $user->id)->where('payment_method', 'cash')->where('status', 'completed')->sum('amount_paid')
+        // All-time totals (unaffected by date filter). Cash actually retained,
+        // not cash tendered — see the equivalent computation in index() for why.
+        $cashSales        = Sale::where('user_id', $user->id)->where('payment_method', 'cash')->where('status', 'completed')->sum(DB::raw('total_amount - balance_due'))
             + Sale::where('user_id', $user->id)->where('payment_method', 'split')->where('split_method_1', 'cash')->where('status', 'completed')->sum('split_amount_1')
             + Sale::where('user_id', $user->id)->where('payment_method', 'split')->where('split_method_2', 'cash')->where('status', 'completed')->sum('split_amount_2');
         $cashConsignments = ConsignmentPayment::where('paid_by', $user->id)->where('payment_method', 'cash')->sum('amount');

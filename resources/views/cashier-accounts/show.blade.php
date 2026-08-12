@@ -107,7 +107,8 @@
                                 GHS {{ number_format(($sale->split_method_1 === 'cash' ? $sale->split_amount_1 : 0) + ($sale->split_method_2 === 'cash' ? $sale->split_amount_2 : 0), 2) }}
                                 <span class="text-xs text-gray-400 font-normal ml-1">(split)</span>
                             @else
-                                GHS {{ number_format($sale->amount_paid, 2) }}
+                                {{-- Cash actually retained (excludes change given back), matching the summary card above --}}
+                                GHS {{ number_format($sale->total_amount - $sale->balance_due, 2) }}
                             @endif
                         </td>
                         <td class="px-5 py-3 text-xs text-gray-500">
