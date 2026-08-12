@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
@@ -39,11 +40,22 @@ class PurchaseOrder extends Model
     public function items()      { return $this->hasMany(PurchaseOrderItem::class); }
     public function payments()   { return $this->hasMany(SupplierPayment::class); }
 
+    // Computes the next number from the true MAX numeric suffix among all
+    // rows under the current prefix (not "whichever row is latest by
+    // created_at") and locks those rows for the duration of the
+    // transaction so concurrent requests can't compute the same number.
     public static function generatePoNumber(): string
     {
-        $last = static::withTrashed()->latest()->first();
-        $next = $last ? ((int) substr($last->po_number, 7)) + 1 : 1;
-        $prefix = setting('po_prefix', 'TAC');
-        return $prefix.'-' . str_pad($next, 6, '0', STR_PAD_LEFT);
+        return DB::transaction(function () {
+            $prefix = setting('po_prefix', 'TAC') . '-';
+
+            $maxNumber = (int) static::withTrashed()
+                ->where('po_number', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->selectRaw('MAX(CAST(SUBSTRING(po_number, ?) AS UNSIGNED)) as max_num', [strlen($prefix) + 1])
+                ->value('max_num');
+
+            return $prefix . str_pad($maxNumber + 1, 6, '0', STR_PAD_LEFT);
+        });
     }
 }

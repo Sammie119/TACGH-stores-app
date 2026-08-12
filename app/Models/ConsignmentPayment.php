@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
@@ -29,10 +30,22 @@ class ConsignmentPayment extends Model
     public function consignment() { return $this->belongsTo(Consignment::class); }
     public function paidBy()      { return $this->belongsTo(User::class, 'paid_by'); }
 
+    // Computes the next number from the true MAX numeric suffix among all
+    // rows under the prefix (not "whichever row is latest by created_at")
+    // and locks those rows for the duration of the transaction so
+    // concurrent requests can't compute the same number.
     public static function generateReference(): string
     {
-        $last = static::withTrashed()->latest()->first();
-        $next = $last ? ((int) substr($last->reference, 5)) + 1 : 1;
-        return 'CPAY-' . str_pad($next, 6, '0', STR_PAD_LEFT);
+        return DB::transaction(function () {
+            $prefix = 'CPAY-';
+
+            $maxNumber = (int) static::withTrashed()
+                ->where('reference', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->selectRaw('MAX(CAST(SUBSTRING(reference, ?) AS UNSIGNED)) as max_num', [strlen($prefix) + 1])
+                ->value('max_num');
+
+            return $prefix . str_pad($maxNumber + 1, 6, '0', STR_PAD_LEFT);
+        });
     }
 }

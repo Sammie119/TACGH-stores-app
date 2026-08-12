@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
@@ -56,12 +57,25 @@ class Sale extends Model
         });
     }
 
-    // Auto-generate invoice number
+    // Auto-generate invoice number.
+    //
+    // Computes the next number from the true MAX numeric suffix among all
+    // rows under the current prefix (not "whichever row is latest by
+    // created_at" — backdated sales break that ordering) and locks those
+    // rows for the duration of the transaction so concurrent checkouts
+    // can't compute the same number.
     public static function generateInvoiceNo(): string
     {
-        $last = static::latest()->first();
-        $next = $last ? ((int) substr($last->invoice_no, 8)) + 1 : 1;
-        $prefix = setting('invoice_prefix', 'TAC');
-        return $prefix.'-' . str_pad($next, 6, '0', STR_PAD_LEFT);
+        return DB::transaction(function () {
+            $prefix = setting('invoice_prefix', 'TAC') . '-';
+
+            $maxNumber = (int) static::withTrashed()
+                ->where('invoice_no', 'like', $prefix . '%')
+                ->lockForUpdate()
+                ->selectRaw('MAX(CAST(SUBSTRING(invoice_no, ?) AS UNSIGNED)) as max_num', [strlen($prefix) + 1])
+                ->value('max_num');
+
+            return $prefix . str_pad($maxNumber + 1, 6, '0', STR_PAD_LEFT);
+        });
     }
 }
